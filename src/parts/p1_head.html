@@ -1,0 +1,492 @@
+<title>Relatórios AMA TEC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: entrada (login) → barra de navegação → páginas com formulário à esquerda e lista/pré-visualização à direita. */
+:root{
+  --bg:#f1f6f8; --surface:#ffffff; --fg:#132431; --muted:#566b78; --line:#d3e0e6;
+  --accent:#0b8aa3; --accent-fg:#ffffff; --navy:#1b3a57; --navy-fg:#ffffff; --soft:#e5f2f6;
+  --ok-bg:#d9f1e3; --ok-fg:#14603a; --warn-bg:#fdecc8; --warn-fg:#7a4b00; --bad-bg:#fbdcd9; --bad-fg:#8f1d14; --err:#b3261e;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  --font-head:'Space Grotesk','Inter',system-ui,Arial,sans-serif;
+  /* folha de papel: igual nos dois temas */
+  --paper:#ffffff; --ink:#1c2b36; --ink2:#33444f; --pmute:#4a5b68; --rule:#b9c8d1; --brand:#1b3a57; --pline:#d6e2e8; --psoft:#f4f9fb;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1820; --surface:#13252f; --fg:#e5eef3; --muted:#9db2be; --line:#27414f;
+    --accent:#3cc1da; --accent-fg:#06232b; --navy:#8fb7d8; --navy-fg:#06232b; --soft:#183645;
+    --ok-bg:#16402b; --ok-fg:#9be3b9; --warn-bg:#4a3510; --warn-fg:#f5cf86; --bad-bg:#4d1f1b; --bad-fg:#ffb4ab; --err:#ff8a80; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1820; --surface:#13252f; --fg:#e5eef3; --muted:#9db2be; --line:#27414f;
+  --accent:#3cc1da; --accent-fg:#06232b; --navy:#8fb7d8; --navy-fg:#06232b; --soft:#183645;
+  --ok-bg:#16402b; --ok-fg:#9be3b9; --warn-bg:#4a3510; --warn-fg:#f5cf86; --bad-bg:#4d1f1b; --bad-fg:#ffb4ab; --err:#ff8a80; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--font-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* entrada */
+.authwrap{min-height:calc(100vh - 80px);display:flex;align-items:center;justify-content:center}
+.authcard{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:26px 24px;display:flex;flex-direction:column;gap:14px}
+.authcard .lg{display:flex;align-items:center;gap:12px}
+.authcard .lg img{width:52px;height:52px;border-radius:13px;flex:none}
+.authcard h1{margin:0;font:700 22px/1.1 var(--font-head)}
+.authcard p{margin:0}
+.authcard form{display:flex;flex-direction:column;gap:12px}
+.err{color:var(--err);font-size:12.5px;min-height:18px;margin:0}
+.chk{flex-direction:row;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.chk input{width:auto}
+
+/* barra */
+.bar{max-width:1280px;margin:0 auto 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.brand img{width:40px;height:40px;border-radius:10px}
+.brand b{font:700 18px/1.1 var(--font-head);display:block}
+.brand span{font-size:12px;color:var(--muted)}
+.nav{display:flex;gap:4px;padding:4px;background:var(--soft);border-radius:10px;overflow-x:auto;min-width:0;flex:1 1 360px}
+.nav button{flex:1 0 auto;border:0;background:transparent;color:var(--muted);font:600 13px var(--font-body);padding:9px 14px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.nav button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.who{display:flex;align-items:center;gap:8px;margin-left:auto}
+.whoBtn{display:flex;flex-direction:column;align-items:flex-end;background:transparent;border:0;color:var(--fg);cursor:pointer;font:600 13px var(--font-body);padding:4px 6px;border-radius:8px;text-align:right}
+.whoBtn small{font-weight:400;color:var(--muted);font-size:11.5px}
+
+.app{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:24px;align-items:start}
+.app.wide{grid-template-columns:minmax(0,1fr)}
+@media (max-width:920px){.app{grid-template-columns:minmax(0,1fr)}}
+.panel{min-width:0;display:flex;flex-direction:column;gap:14px}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--soft);border-radius:10px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:600 13px var(--font-body);padding:9px 10px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.numcard{background:var(--navy);color:var(--navy-fg);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.numcard small{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;opacity:.85;font-weight:600}
+.numcard strong{font:700 30px/1.1 var(--font-head);letter-spacing:1px;font-variant-numeric:tabular-nums}
+.numcard span{font-size:12px;opacity:.85}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec h2{margin:0;font:600 12px var(--font-head);letter-spacing:1.5px;text-transform:uppercase;color:var(--accent)}
+.sec h3{margin:0;font:600 14px var(--font-head)}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.row .full{grid-column:1/-1}
+@media (max-width:480px){.row{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:500;color:var(--muted);min-width:0}
+input,select,textarea{font:400 14px var(--font-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:74px;line-height:1.45}
+.hint{font-size:11.5px;color:var(--muted);margin:0}
+.actions{display:flex;flex-direction:column;gap:8px}
+.btn{font:600 14px var(--font-body);border-radius:9px;padding:11px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row .btn{flex:1;min-width:110px}
+details.addtype{border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+details.addtype summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--accent)}
+details.addtype .row{margin-top:10px}
+details.addtype .btn{margin-top:8px}
+.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,170px);gap:10px}
+@media (max-width:480px){.filters{grid-template-columns:minmax(0,1fr)}}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;color:var(--fg);font:400 13px var(--font-body)}
+.item b{font:700 14px var(--font-head);letter-spacing:.5px;min-width:78px;font-variant-numeric:tabular-nums}
+.item .m{flex:1;min-width:0;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .v{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.badge{display:inline-block;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--accent);white-space:nowrap}
+.badge.ok{background:var(--ok-bg);color:var(--ok-fg)}
+.badge.warn{background:var(--warn-bg);color:var(--warn-fg)}
+.badge.bad{background:var(--bad-bg);color:var(--bad-fg)}
+.empty{padding:22px 14px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+.urow{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.urow .uinfo{flex:1 1 180px;min-width:0;display:flex;flex-direction:column}
+.urow .uinfo span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.urow .uact{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.urow select{width:auto;padding:6px 8px;font-size:13px}
+.urow details{flex:1 0 100%}
+.urow details summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--accent)}
+.urow .rp{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.urow .rp input{flex:1 1 180px;width:auto}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:13px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:30;max-width:calc(100% - 32px);text-align:center}
+
+/* pré-visualização da folha A4 */
+.preview{min-width:0;display:flex;flex-direction:column;gap:8px}
+.preview .cap{font-size:12px;color:var(--muted)}
+.sheetwrap{width:100%;overflow:hidden;border-radius:6px;box-shadow:0 2px 14px rgba(10,30,45,.18);background:#fff}
+.sheetscale{transform-origin:top left;width:794px}
+#paper{width:794px;min-height:1123px;background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,Arial,sans-serif;display:flex;flex-direction:column;font-size:12px}
+#pDyn{display:contents}
+.p-head{display:flex;align-items:center;gap:20px;padding:28px 44px 24px;background:linear-gradient(120deg,#1b3a57 0%,#1f6f8b 60%,#0b9bb5 100%);color:#fff}
+.p-head img{width:86px;height:86px;flex:none}
+.p-co{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.p-co .n{font:700 30px/1.1 'Space Grotesk',Arial,sans-serif;letter-spacing:2px}
+.p-co .s{font-size:12px;font-weight:500;opacity:.92}
+.p-co .a{font-size:11px;opacity:.85;margin-top:4px;line-height:1.5}
+.p-ct{font-size:11px;line-height:1.5;text-align:right;flex:none}
+.p-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:22px 44px 14px}
+.p-title .k{font-size:11px;font-weight:600;letter-spacing:2px;color:#0b8aa3}
+.p-title .t{font:700 25px/1.15 'Space Grotesk',Arial,sans-serif;color:var(--brand);margin-top:4px}
+.p-meta{text-align:right;font-size:11px;color:var(--pmute);display:flex;flex-direction:column;gap:3px}
+.p-meta .num{font:700 17px 'Space Grotesk',Arial,sans-serif;color:var(--brand);letter-spacing:1px}
+.p-two{display:flex;gap:16px;padding:0 44px}
+.p-box{flex:1;min-width:0;border:1px solid var(--pline);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:9px}
+.p-box.alt{background:var(--psoft)}
+.p-box h3{margin:0;font:600 12px 'Space Grotesk',Arial,sans-serif;letter-spacing:1.5px;color:#0b8aa3}
+.f{font-size:11px;color:var(--pmute);display:flex;gap:6px;align-items:flex-end;min-height:16px}
+.f .l{flex:none}
+.f .v{flex:1;min-width:0;border-bottom:1px solid var(--rule);min-height:15px;color:var(--ink);font-weight:600;font-size:12px;line-height:1.25;overflow-wrap:anywhere}
+.f .v.set{border-bottom-color:transparent}
+.p-body{display:flex;flex-direction:column;gap:16px;padding:20px 44px 0}
+.p-sec{display:flex;flex-direction:column;gap:8px}
+.p-h{display:flex;align-items:center;gap:10px}
+.p-h i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font:700 13px 'Space Grotesk',Arial,sans-serif;display:flex;align-items:center;justify-content:center}
+.p-h b{font:600 15px 'Space Grotesk',Arial,sans-serif;color:var(--brand)}
+.p-txt{font-size:12px;line-height:1.6;color:var(--ink2);padding-left:36px;white-space:pre-line;overflow-wrap:anywhere}
+.p-ul{margin:0;padding:0 0 0 36px;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.5;color:var(--ink2)}
+.p-ul li{display:flex;gap:8px}
+.p-ul li::before{content:"";width:6px;height:6px;border-radius:50%;background:#0b9bb5;margin-top:6px;flex:none}
+.p-ul li span{min-width:0;overflow-wrap:anywhere}
+.p-ul b{color:var(--ink)}
+.p-val{margin-left:36px;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-radius:10px;background:linear-gradient(120deg,#1b3a57 0%,#1f6f8b 70%,#0b9bb5 100%);color:#fff}
+.p-val span{font-size:12px;font-weight:500;opacity:.95}
+.p-val strong{font:700 24px 'Space Grotesk',Arial,sans-serif;letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.p-sign{display:flex;gap:40px;padding:34px 44px 0;margin-top:auto;margin-bottom:22px}
+.p-sign div{flex:1;display:flex;flex-direction:column;gap:6px;align-items:center}
+.p-sign div::before{content:"";width:100%;border-bottom:1px solid #8ea2af;height:30px}
+.p-sign span{font-size:10.5px;color:var(--pmute);letter-spacing:.5px}
+.p-foot{display:flex;flex-direction:column;align-items:center;gap:3px;padding:14px 44px;background:#eef5f8;border-top:3px solid #0b9bb5}
+.p-foot b{font:600 11.5px 'Space Grotesk',Arial,sans-serif;color:var(--brand);letter-spacing:.5px}
+.p-foot i{font-size:10.5px;color:var(--pmute)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.xl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.xl:empty{display:none}
+.chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:var(--soft);color:var(--accent);border-radius:99px;padding:4px 11px;font:600 12px var(--font);cursor:pointer;max-width:100%}
+.chip:hover{border-color:var(--accent)}
+.chip span{font-weight:400;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
+.grp{display:flex;flex-direction:column;gap:6px}
+.grp h3{margin:6px 0 0;font:600 13px var(--font-head);display:flex;gap:8px;align-items:center}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stats .badge{font-size:12px}
+</style>
+
+<!-- ============ ENTRADA ============ -->
+<div id="authView" class="authwrap">
+  <div class="authcard">
+    <div class="lg"><img id="authLogo" alt="Logotipo AMA TEC"><div><h1>AMA TEC</h1><p class="hint" id="authSub">A carregar…</p></div></div>
+    <p class="hint" id="authLoading">A ligar à base de dados…</p>
+    <form id="loginForm" hidden autocomplete="on">
+      <label for="lgUser">Utilizador<input id="lgUser" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+      <label for="lgPass">Senha<input id="lgPass" name="password" type="password" autocomplete="current-password"></label>
+      <label class="chk" for="lgShow"><input id="lgShow" type="checkbox"> Mostrar senha</label>
+      <p class="err" id="lgErr" role="alert"></p>
+      <button class="btn primary" type="submit" id="lgBtn">Entrar</button>
+    </form>
+    <form id="setupForm" hidden autocomplete="off">
+      <p class="hint">É o primeiro acesso. Cria a conta do administrador. Depois podes criar as contas dos técnicos na página Administração.</p>
+      <label for="suName">Nome<input id="suName" type="text" autocomplete="name"></label>
+      <label for="suUser">Utilizador (3 a 24 letras minúsculas, números, ponto ou hífen)<input id="suUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+      <label for="suPass">Senha (mínimo 6 caracteres)<input id="suPass" type="password" autocomplete="new-password"></label>
+      <label for="suPass2">Repetir senha<input id="suPass2" type="password" autocomplete="new-password"></label>
+      <p class="err" id="suErr" role="alert"></p>
+      <button class="btn primary" type="submit" id="suBtn">Criar administrador</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ APLICAÇÃO ============ -->
+<div id="appView" hidden>
+  <header class="bar">
+    <div class="brand"><img id="logoTop" src="__LOGO__" alt="Logotipo AMA TEC"><div><b>AMA TEC</b><span>Oficina</span></div></div>
+    <nav class="nav" id="nav" aria-label="Páginas">
+      <button type="button" data-view="rel" aria-selected="true">Relatórios</button>
+      <button type="button" data-view="cli" aria-selected="false">Clientes</button>
+      <button type="button" data-view="eq" aria-selected="false">Equipamentos</button>
+      <button type="button" data-view="os" aria-selected="false">Ordens de serviço</button>
+      <button type="button" data-view="adm" aria-selected="false" id="navAdm" hidden>Administração</button>
+    </nav>
+    <div class="who">
+      <button type="button" class="whoBtn" id="btnConta" aria-label="A minha conta"><span id="whoName"></span><small id="whoRole"></small></button>
+      <button type="button" class="btn sm" id="btnSair">Sair</button>
+    </div>
+  </header>
+
+  <!-- ---------- RELATÓRIOS ---------- -->
+  <section id="v_rel">
+    <div class="app">
+      <div class="panel">
+        <div class="tabs" role="tablist">
+          <button id="tabForm" type="button" role="tab" aria-selected="true" aria-controls="viewForm">Relatório</button>
+          <button id="tabHist" type="button" role="tab" aria-selected="false" aria-controls="viewHist">Histórico <span id="histCount"></span></button>
+        </div>
+
+        <div id="viewForm" class="panel" role="tabpanel">
+          <div class="numcard" aria-live="polite">
+            <small id="numLabel">Nº do relatório</small>
+            <strong id="numValue">…</strong>
+            <span id="numNote">Atribuído automaticamente ao guardar.</span>
+          </div>
+
+          <div class="sec">
+            <h2>Equipamento</h2>
+            <label for="repCli">Cliente registado (opcional)
+              <select id="repCli" data-p="rep" data-k="clienteId"></select>
+            </label>
+            <div class="xl" id="repXl"></div>
+            <label for="repOs">Ligar a uma ordem de serviço (opcional)
+              <select id="repOs" data-p="rep" data-k="os"></select>
+            </label>
+            <label for="code">Tipo de equipamento (define o código)
+              <select id="code" data-p="rep" data-k="code"></select>
+            </label>
+            <details class="addtype" id="addType">
+              <summary>Adicionar outro tipo de equipamento</summary>
+              <div class="row">
+                <label for="newName">Nome<input id="newName" type="text" placeholder="Ex.: Ventoinha" autocomplete="off"></label>
+                <label for="newCode">Código (2 a 4 letras)<input id="newCode" type="text" maxlength="4" placeholder="VEN" autocomplete="off"></label>
+              </div>
+              <p class="hint" id="newTypeMsg"></p>
+              <button class="btn" id="btnAddType" type="button">Adicionar tipo</button>
+            </details>
+            <div class="row">
+              <label for="marca">Marca<input id="marca" data-p="rep" data-k="marca" type="text" autocomplete="off"></label>
+              <label for="capacidade">Capacidade ou tamanho<input id="capacidade" data-p="rep" data-k="capacidade" type="text" placeholder="Ex.: 7 kg, 43 polegadas" autocomplete="off"></label>
+              <label for="modelo">Modelo<input id="modelo" data-p="rep" data-k="modelo" type="text" autocomplete="off"></label>
+              <label for="serie">Nº de série<input id="serie" data-p="rep" data-k="serie" type="text" autocomplete="off"></label>
+            </div>
+          </div>
+
+          <div class="sec">
+            <h2>Cliente</h2>
+            <div class="row">
+              <label for="nome">Nome<input id="nome" data-p="rep" data-k="nome" type="text" autocomplete="off"></label>
+              <label for="contacto">Contacto<input id="contacto" data-p="rep" data-k="contacto" type="text" inputmode="tel" autocomplete="off"></label>
+              <label for="email">E-mail<input id="email" data-p="rep" data-k="email" type="text" inputmode="email" autocomplete="off"></label>
+              <label for="nif">NIF (opcional)<input id="nif" data-p="rep" data-k="nif" type="text" autocomplete="off"></label>
+            </div>
+            <label for="endereco">Endereço<input id="endereco" data-p="rep" data-k="endereco" type="text" autocomplete="off"></label>
+          </div>
+
+          <div class="sec">
+            <h2>Trabalhos</h2>
+            <label for="date">Data<input id="date" data-p="rep" data-k="date" type="date"></label>
+            <label for="intro">1. Introdução à descrição<textarea id="intro" data-p="rep" data-k="intro"></textarea></label>
+            <label for="componentes">Componentes intervencionados
+              <textarea id="componentes" data-p="rep" data-k="componentes" placeholder="Um por linha. Ex.: Placa electrónica: reparação da placa de comando."></textarea>
+            </label>
+            <p class="hint">Uma linha por componente. O texto antes dos dois pontos fica a negrito.</p>
+            <label for="servicos">2. Serviços executados
+              <textarea id="servicos" data-p="rep" data-k="servicos" placeholder="Um por linha."></textarea>
+            </label>
+            <label for="valor">3. Valor total da reparação (Kz)
+              <input id="valor" data-p="rep" data-k="valor" type="text" inputmode="decimal" placeholder="65000" autocomplete="off">
+            </label>
+            <label for="conclusao">4. Conclusão<textarea id="conclusao" data-p="rep" data-k="conclusao"></textarea></label>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" id="btnPdf" type="button">Guardar e descarregar PDF</button>
+            <div class="btn-row">
+              <button class="btn" id="btnSave" type="button">Guardar</button>
+              <button class="btn" id="btnNew" type="button">Novo relatório</button>
+              <button class="btn" id="btnClear" type="button">Limpar campos</button>
+            </div>
+            <p class="hint">“Novo relatório” volta sempre aos dados de exemplo (Candy 7 kg). “Limpar campos” esvazia tudo para começares do zero.</p>
+          </div>
+        </div>
+
+        <div id="viewHist" class="panel" role="tabpanel" hidden>
+          <label for="histSearch">Pesquisar relatórios
+            <input id="histSearch" type="search" placeholder="Nº, cliente, marca, modelo, componente…" autocomplete="off">
+          </label>
+          <p class="hint" id="histInfo"></p>
+          <div class="list" id="histList"></div>
+        </div>
+      </div>
+
+      <div class="preview">
+        <div class="cap">Pré-visualização do relatório (A4)</div>
+        <div class="sheetwrap" id="sheetWrap">
+          <div class="sheetscale" id="sheetScale">
+            <div id="paper">
+              <div class="p-head"><img id="pLogo" alt="Logotipo AMA TEC">
+                <div class="p-co"><div class="n">AMA TEC</div><div class="s">Prestação de Serviço e Comércio Geral</div>
+                  <div class="a">NIF: 5001399837 &nbsp;·&nbsp; Golf 2, Rua do Colégio Loidy Laura</div></div>
+                <div class="p-ct"><div>Tel: 930 372 597 / 951 158 866</div><div>amatec.electronica@gmail.com</div></div></div>
+              <div id="pDyn"></div>
+              <div class="p-sign"><div><span>Técnico responsável — AMA TEC</span></div><div><span>Cliente (nome e assinatura)</span></div></div>
+              <div class="p-foot"><b>AMA TEC — Assistência Técnica de Equipamentos Electrónicos</b><i>Amamos Tecnologias e Electrónica.</i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- CLIENTES ---------- -->
+  <section id="v_cli" hidden>
+    <div class="app">
+      <div class="panel">
+        <div class="numcard" aria-live="polite">
+          <small id="numCliLabel">Próximo nº de cliente</small>
+          <strong id="numCliValue">…</strong>
+          <span>Ficha única do cliente, ligada aos seus equipamentos, ordens e relatórios.</span>
+        </div>
+        <div class="sec"><h2>Dados do cliente</h2><div class="row" id="cliF1"></div></div>
+        <div class="actions">
+          <button class="btn primary" id="btnCliSave" type="button">Guardar cliente</button>
+          <div class="btn-row">
+            <button class="btn" id="btnCliEq" type="button">Novo equipamento</button>
+            <button class="btn" id="btnCliOs" type="button">Nova ordem de serviço</button>
+            <button class="btn" id="btnCliRep" type="button">Novo relatório</button>
+            <button class="btn" id="btnCliNew" type="button">Novo cliente</button>
+          </div>
+          <p class="hint">Os clientes também são criados sozinhos quando guardas um equipamento, uma ordem ou um relatório com o nome do cliente. Alterar a ficha aplica-se aos documentos novos; os já emitidos não mudam.</p>
+        </div>
+        <div class="sec" id="cliLinks" hidden><h2>Ligações do cliente</h2><div id="cliLinksBody" class="grp"></div></div>
+      </div>
+      <div class="panel">
+        <div class="filters">
+          <label for="cliSearch">Pesquisar clientes<input id="cliSearch" type="search" placeholder="Nº, nome, contacto, e-mail, NIF…" autocomplete="off"></label>
+        </div>
+        <p class="hint" id="cliInfo"></p>
+        <div class="list" id="cliList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- EQUIPAMENTOS ---------- -->
+  <section id="v_eq" hidden>
+    <div class="app">
+      <div class="panel">
+        <div class="numcard" aria-live="polite">
+          <small id="numEqLabel">Próximo nº de equipamento</small>
+          <strong id="numEqValue">…</strong>
+          <span>Registo dos equipamentos que entram na oficina.</span>
+        </div>
+        <div class="xl" id="eqXl"></div>
+        <div class="sec"><h2>Equipamento</h2><div class="row" id="eqF1"></div></div>
+        <div class="sec"><h2>Cliente</h2><div class="row" id="eqF2"></div></div>
+        <div class="sec"><h2>Entrada na oficina</h2><div class="row" id="eqF3"></div></div>
+        <div class="actions">
+          <button class="btn primary" id="btnEqSave" type="button">Guardar equipamento</button>
+          <div class="btn-row">
+            <button class="btn" id="btnEqOs" type="button">Abrir ordem de serviço</button>
+            <button class="btn" id="btnEqRep" type="button">Criar relatório</button>
+            <button class="btn" id="btnEqNew" type="button">Novo registo</button>
+          </div>
+          <p class="hint">Preenche pelo menos o nome do cliente e a marca. A ordem de serviço e o relatório aproveitam os dados já registados.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="filters">
+          <label for="eqSearch">Pesquisar equipamentos<input id="eqSearch" type="search" placeholder="Nº, cliente, marca, modelo, série…" autocomplete="off"></label>
+          <label for="eqFilter">Estado<select id="eqFilter"></select></label>
+        </div>
+        <p class="hint" id="eqInfo"></p>
+        <div class="list" id="eqList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- ORDENS DE SERVIÇO ---------- -->
+  <section id="v_os" hidden>
+    <div class="app">
+      <div class="panel">
+        <div class="numcard" aria-live="polite">
+          <small id="numOsLabel">Próxima ordem de serviço</small>
+          <strong id="numOsValue">…</strong>
+          <span id="numOsNote">Atribuído automaticamente ao guardar.</span>
+        </div>
+        <div class="xl" id="osXl"></div>
+        <div class="sec"><h2>Ordem</h2><div class="row" id="osF1"></div></div>
+        <div class="sec"><h2>Equipamento</h2><div class="row" id="osF2"></div></div>
+        <div class="sec"><h2>Cliente</h2><div class="row" id="osF3"></div></div>
+        <div class="sec"><h2>Trabalho a executar</h2><div class="row" id="osF4"></div></div>
+        <div class="sec"><h2>Gestão</h2><div class="row" id="osF5"></div>
+          <p class="hint" id="osRel"></p></div>
+        <div class="actions">
+          <button class="btn primary" id="btnOsPdf" type="button">Guardar e descarregar PDF</button>
+          <div class="btn-row">
+            <button class="btn" id="btnOsSave" type="button">Guardar</button>
+            <button class="btn" id="btnOsRep" type="button">Criar relatório</button>
+            <button class="btn" id="btnOsNew" type="button">Nova ordem</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="filters">
+          <label for="osSearch">Pesquisar ordens<input id="osSearch" type="search" placeholder="Nº, cliente, marca, técnico, avaria…" autocomplete="off"></label>
+          <label for="osFilter">Estado<select id="osFilter"></select></label>
+        </div>
+        <p class="hint" id="osInfo"></p>
+        <div class="list" id="osList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- ADMINISTRAÇÃO ---------- -->
+  <section id="v_adm" hidden>
+    <div class="app">
+      <div class="panel">
+        <div class="sec">
+          <h2>Novo utilizador</h2>
+          <form id="newUserForm" class="row" autocomplete="off">
+            <label for="nuName">Nome<input id="nuName" type="text"></label>
+            <label for="nuUser">Utilizador<input id="nuUser" type="text" autocapitalize="none" spellcheck="false" placeholder="ex.: joao.silva"></label>
+            <label for="nuRole">Perfil<select id="nuRole"><option value="tecnico">Técnico</option><option value="admin">Administrador</option></select></label>
+            <label for="nuPass">Senha inicial (mínimo 6)<input id="nuPass" type="password" autocomplete="new-password"></label>
+            <p class="err full" id="nuErr" role="alert"></p>
+            <button class="btn primary full" type="submit">Criar utilizador</button>
+          </form>
+          <p class="hint">O administrador cria as contas e repõe senhas. O técnico usa relatórios, equipamentos e ordens de serviço.</p>
+        </div>
+        <div class="sec">
+          <h2>Segurança</h2>
+          <p class="hint">A senha identifica quem fez cada registo e separa o perfil de administrador. As senhas ficam guardadas de forma cifrada. Quem consegue abrir esta página continua a ter acesso técnico à base de dados, por isso o mais importante é controlar quem pode abrir o link (menu Partilhar).</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="sec"><h2>Utilizadores</h2><div class="list" id="userList"></div></div>
+        <div class="sec">
+          <h2>Cópia de segurança</h2>
+          <p class="hint">Todos os registos ficam guardados. De vez em quando, exporta uma cópia para guardares no GitHub ou abrires no Excel. As senhas não vão na cópia.</p>
+          <div class="btn-row">
+            <button class="btn" id="btnCsvRep" type="button">Relatórios (CSV)</button>
+            <button class="btn" id="btnCsvEq" type="button">Equipamentos (CSV)</button>
+            <button class="btn" id="btnCsvOs" type="button">Ordens (CSV)</button>
+            <button class="btn" id="btnCsvCli" type="button">Clientes (CSV)</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn" id="btnJson" type="button">Exportar cópia completa (JSON)</button>
+            <button class="btn" id="btnImport" type="button">Importar cópia</button>
+          </div>
+          <input id="fileImport" type="file" accept=".json,application/json" hidden>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- A MINHA CONTA ---------- -->
+  <section id="v_conta" hidden>
+    <div class="app">
+      <div class="panel">
+        <div class="sec">
+          <h2>A minha conta</h2>
+          <p id="contaInfo"></p>
+        </div>
+        <div class="sec">
+          <h2>Alterar senha</h2>
+          <form id="pwForm" class="row" autocomplete="off">
+            <label for="pwOld" class="full">Senha actual<input id="pwOld" type="password" autocomplete="current-password"></label>
+            <label for="pwNew">Nova senha (mínimo 6)<input id="pwNew" type="password" autocomplete="new-password"></label>
+            <label for="pwNew2">Repetir nova senha<input id="pwNew2" type="password" autocomplete="new-password"></label>
+            <p class="err full" id="pwErr" role="alert"></p>
+            <button class="btn primary full" type="submit">Guardar nova senha</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
