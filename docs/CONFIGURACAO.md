@@ -10,7 +10,7 @@
 
 ## 3. Fechar os registos abertos
 **Authentication → Sign In / Providers** (ou *Settings*): desliga **Allow new users to sign up**.
-Assim só o administrador cria contas.
+Assim só o administrador cria contas. (Mesmo que fique ligado, quem se registar sozinho fica **inactivo** e não vê nenhum dado.)
 
 ## 4. Criar o administrador
 1. **Authentication → Users → Add user → Create new user**.

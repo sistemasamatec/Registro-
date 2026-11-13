@@ -48,8 +48,8 @@ Deno.serve(async (req) => {
       const dup = /already|registered|exists/i.test(error?.message || "");
       return json(400, { error: dup ? "Esse e-mail já existe." : "Não foi possível criar o utilizador." });
     }
-    // o gatilho cria o perfil como técnico (ou administrador se for o primeiro)
-    const { error: pErr } = await admin.from("profiles").update({ role, name }).eq("id", data.user.id);
+    // o gatilho cria o perfil inactivo (só o primeiro utilizador fica administrador activo); aqui activamos
+    const { error: pErr } = await admin.from("profiles").update({ role, name, active: true }).eq("id", data.user.id);
     if (pErr) return json(500, { error: "Utilizador criado, mas não foi possível definir o perfil." });
     return json(200, { ok: true });
   }

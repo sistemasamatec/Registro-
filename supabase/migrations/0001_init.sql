@@ -24,12 +24,15 @@ $$ select exists (select 1 from public.profiles where id = auth.uid() and active
 -- O primeiro utilizador criado fica administrador; os seguintes ficam técnicos.
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
+declare first_user boolean := not exists (select 1 from public.profiles);
 begin
-  insert into public.profiles (id, email, name, role)
+  -- só o primeiro utilizador entra activo (administrador); os outros ficam inactivos até o administrador os activar
+  insert into public.profiles (id, email, name, role, active)
   values (
     new.id, lower(new.email),
     coalesce(nullif(new.raw_user_meta_data->>'name',''), split_part(new.email,'@',1)),
-    case when exists (select 1 from public.profiles) then 'tecnico' else 'admin' end
+    case when first_user then 'admin' else 'tecnico' end,
+    first_user
   );
   return new;
 end $$;
