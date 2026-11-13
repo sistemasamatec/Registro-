@@ -1,4 +1,14 @@
-<title>Relatórios AMA TEC</title>
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b3a57">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}</style>
+<title>AMA TEC Oficina</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
 <style>
@@ -185,6 +195,7 @@ details.addtype .btn{margin-top:8px}
 .sigdone{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface)}
 .sigdone img{width:150px;max-width:45%;height:auto;background:#fff;border-radius:6px;border:1px solid var(--line)}
 .sigdone small{color:var(--muted)}
+.offline{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);z-index:60;background:var(--bad-fg);color:var(--bad-bg);text-align:center;font:600 13px var(--font-body);padding:8px 12px}
 </style>
 
 <!-- ============ ENTRADA ============ -->
@@ -328,6 +339,7 @@ details.addtype .btn{margin-top:8px}
           <div class="sec" id="repSig"></div>
           <div class="actions">
             <button class="btn primary" id="btnPdf" type="button">Guardar e descarregar PDF</button>
+            <button class="btn" id="btnShare" type="button">Guardar e partilhar PDF (WhatsApp…)</button>
             <div class="btn-row">
               <button class="btn" id="btnSave" type="button">Guardar</button>
               <button class="btn" id="btnNew" type="button">Novo relatório</button>
@@ -453,6 +465,7 @@ details.addtype .btn{margin-top:8px}
         <div class="sec" id="osSig"></div>
         <div class="actions">
           <button class="btn primary" id="btnOsPdf" type="button">Guardar e descarregar PDF</button>
+          <button class="btn" id="btnOsShare" type="button">Guardar e partilhar PDF (WhatsApp…)</button>
           <div class="btn-row">
             <button class="btn" id="btnOsSave" type="button">Guardar</button>
             <button class="btn" id="btnOsRep" type="button">Criar relatório</button>
@@ -536,6 +549,7 @@ details.addtype .btn{margin-top:8px}
     </div>
   </section>
 </div>
+<div class="offline" id="offline" role="alert" hidden>Sem ligação à internet. As alterações só são guardadas quando a ligação voltar.</div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="config.js"></script>
@@ -885,10 +899,11 @@ function fit(){
 }
 
 /* ---------- números e botões ---------- */
+function metaOf(X){ return X.autor && X.createdAt ? ' Registado por '+userName(X.autor)+' em '+fmtDateTime(X.createdAt)+'.' : ''; }
 function renderHeader(){
   var n = numFor(S,'reports',S.code);
   $('numValue').textContent = n || '…';
-  if(S.currentId){ $('numLabel').textContent='A editar o relatório'; $('numNote').textContent='O número mantém-se. Guarda para actualizar.'; }
+  if(S.currentId){ $('numLabel').textContent='A editar o relatório'; $('numNote').textContent='O número mantém-se. Guarda para actualizar.'+metaOf(S); }
   else { $('numLabel').textContent='Próximo nº do relatório'; $('numNote').textContent = db ? 'Atribuído automaticamente ao guardar.' : 'Atribuído automaticamente ao guardar (neste navegador).'; }
   $('btnSave').textContent = S.currentId ? 'Guardar alterações' : 'Guardar';
   var ne = numFor(E,'equipamentos','EQ'); $('numEqValue').textContent = ne || '…';
@@ -896,14 +911,14 @@ function renderHeader(){
   $('btnEqSave').textContent = E.currentId ? 'Guardar alterações' : 'Guardar equipamento';
   var no = numFor(O,'ordens','OS'); $('numOsValue').textContent = no || '…';
   $('numOsLabel').textContent = O.currentId ? 'A editar a ordem de serviço' : 'Próxima ordem de serviço';
-  $('numOsNote').textContent = O.currentId ? 'O número mantém-se. Guarda para actualizar.' : 'Atribuído automaticamente ao guardar.';
+  $('numOsNote').textContent = O.currentId ? 'O número mantém-se. Guarda para actualizar.'+metaOf(O) : 'Atribuído automaticamente ao guardar.';
   $('btnOsSave').textContent = O.currentId ? 'Guardar alterações' : 'Guardar';
   var nc = numFor(CLI,'clientes','CL'); $('numCliValue').textContent = nc || '…';
   $('numCliLabel').textContent = CLI.currentId ? 'A editar o cliente' : 'Próximo nº de cliente';
   $('btnCliSave').textContent = CLI.currentId ? 'Guardar alterações' : 'Guardar cliente';
   [['btnRepDel',S],['btnEqDel',E],['btnOsDel',O],['btnCliDel',CLI]].forEach(function(p){ $(p[0]).hidden = !(isAdmin() && p[1].currentId); });
   $('osRel').textContent = O.relatorio ? 'Relatório associado: '+O.relatorio : 'Ainda sem relatório associado.';
-  ['btnSave','btnPdf','btnNew','btnClear','btnEqSave','btnEqOs','btnEqRep','btnEqNew','btnOsPdf','btnOsSave','btnOsRep','btnOsNew','btnCliSave','btnCliEq','btnCliOs','btnCliRep','btnCliNew','btnRepDel','btnEqDel','btnOsDel','btnCliDel'].forEach(function(id){ $(id).disabled = busy; });
+  ['btnSave','btnPdf','btnNew','btnClear','btnEqSave','btnEqOs','btnEqRep','btnEqNew','btnOsPdf','btnOsSave','btnOsRep','btnOsNew','btnCliSave','btnCliEq','btnCliOs','btnCliRep','btnCliNew','btnRepDel','btnEqDel','btnOsDel','btnCliDel','btnShare','btnOsShare'].forEach(function(id){ $(id).disabled = busy; });
 }
 
 /* ---------- listas com pesquisa ---------- */
@@ -1527,6 +1542,18 @@ armDelete('btnEqDel','o equipamento',function(){ return doDelete('equipamentos',
 armDelete('btnOsDel','a ordem',function(){ return doDelete('ordens',O,function(){ O = blankOs(); },'Ordem'); });
 armDelete('btnCliDel','o cliente',function(){ return doDelete('clientes',CLI,function(){ CLI = blankCli(); },'Cliente'); });
 
+/* ---------- partilhar o PDF (WhatsApp, e-mail…) ---------- */
+$('btnShare').addEventListener('click', async function(){
+  if(busy) return;
+  var id = await doSave(); if(!id) return;
+  await makeAndDeliver(function(logo,sig){ return buildPdf({number:id}, logo, sig); }, id+'.pdf', S.assinatura, true);
+});
+$('btnOsShare').addEventListener('click', async function(){
+  if(busy) return;
+  var id = await doSaveOs(); if(!id) return;
+  await makeAndDeliver(function(logo,sig){ return buildOsPdf(O, logo, sig); }, id+'.pdf', O.assinatura, true);
+});
+
 /* =====================================================================
    PDF (gerado aqui, sem bibliotecas externas)
    ===================================================================== */
@@ -1870,12 +1897,18 @@ async function deliver(blob,name){
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){ URL.revokeObjectURL(url); },5000);
 }
-async function makeAndDeliver(builder,name,sigSrc){
+async function makeAndDeliver(builder,name,sigSrc,share){
   busy=true; renderHeader();
   try{
     var blob = builder(await logoP, await loadRaw(sigSrc,640));
-    await deliver(blob,name);
-    toast('PDF pronto: '+name);
+    var shared = false;
+    if(share && navigator.canShare && navigator.share){
+      try{
+        var file = new File([blob],name,{type:'application/pdf'});
+        if(navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:name}); shared = true; }
+      }catch(e){ if(e && e.name==='AbortError'){ return; } }
+    }
+    if(!shared){ await deliver(blob,name); toast(share ? 'Este aparelho não partilha ficheiros: o PDF foi descarregado ('+name+').' : 'PDF pronto: '+name); }
   }catch(e){
     if(!(e && e.code==='declined')) toast('Não foi possível gerar o PDF. O registo ficou guardado.');
   }finally{ busy=false; renderHeader(); }
@@ -2113,6 +2146,16 @@ async function boot(){
   showAuth('login');
 }
 
+/* ---------- instalar como app, sessão e ligação ---------- */
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){
+  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+var IDLE_MS = 30*60*1000, lastAct = Date.now();
+['pointerdown','keydown','scroll','touchstart'].forEach(function(ev){ window.addEventListener(ev,function(){ lastAct = Date.now(); },{passive:true}); });
+setInterval(function(){ if(ME && Date.now()-lastAct > IDLE_MS) logout('Sessão terminada por inactividade. Entra outra vez.'); },30000);
+function netState(){ $('offline').hidden = navigator.onLine!==false; }
+window.addEventListener('online',netState); window.addEventListener('offline',netState); netState();
+
 resetStates(); initForms(); syncAll();
 if(window.ResizeObserver){
   new ResizeObserver(fit).observe($('sheetWrap'));
@@ -2123,3 +2166,4 @@ boot();
 
 })();
 </script>
+</body></html>

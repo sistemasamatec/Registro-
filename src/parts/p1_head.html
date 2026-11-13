@@ -185,6 +185,7 @@ details.addtype .btn{margin-top:8px}
 .sigdone{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface)}
 .sigdone img{width:150px;max-width:45%;height:auto;background:#fff;border-radius:6px;border:1px solid var(--line)}
 .sigdone small{color:var(--muted)}
+.offline{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);z-index:60;background:var(--bad-fg);color:var(--bad-bg);text-align:center;font:600 13px var(--font-body);padding:8px 12px}
 </style>
 
 <!-- ============ ENTRADA ============ -->
@@ -328,6 +329,7 @@ details.addtype .btn{margin-top:8px}
           <div class="sec" id="repSig"></div>
           <div class="actions">
             <button class="btn primary" id="btnPdf" type="button">Guardar e descarregar PDF</button>
+            <button class="btn" id="btnShare" type="button">Guardar e partilhar PDF (WhatsApp…)</button>
             <div class="btn-row">
               <button class="btn" id="btnSave" type="button">Guardar</button>
               <button class="btn" id="btnNew" type="button">Novo relatório</button>
@@ -453,6 +455,7 @@ details.addtype .btn{margin-top:8px}
         <div class="sec" id="osSig"></div>
         <div class="actions">
           <button class="btn primary" id="btnOsPdf" type="button">Guardar e descarregar PDF</button>
+          <button class="btn" id="btnOsShare" type="button">Guardar e partilhar PDF (WhatsApp…)</button>
           <div class="btn-row">
             <button class="btn" id="btnOsSave" type="button">Guardar</button>
             <button class="btn" id="btnOsRep" type="button">Criar relatório</button>
@@ -536,4 +539,5 @@ details.addtype .btn{margin-top:8px}
     </div>
   </section>
 </div>
+<div class="offline" id="offline" role="alert" hidden>Sem ligação à internet. As alterações só são guardadas quando a ligação voltar.</div>
 <div class="toast" id="toast" role="status" hidden></div>

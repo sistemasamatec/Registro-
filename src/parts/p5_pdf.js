@@ -341,12 +341,18 @@ async function deliver(blob,name){
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){ URL.revokeObjectURL(url); },5000);
 }
-async function makeAndDeliver(builder,name,sigSrc){
+async function makeAndDeliver(builder,name,sigSrc,share){
   busy=true; renderHeader();
   try{
     var blob = builder(await logoP, await loadRaw(sigSrc,640));
-    await deliver(blob,name);
-    toast('PDF pronto: '+name);
+    var shared = false;
+    if(share && navigator.canShare && navigator.share){
+      try{
+        var file = new File([blob],name,{type:'application/pdf'});
+        if(navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:name}); shared = true; }
+      }catch(e){ if(e && e.name==='AbortError'){ return; } }
+    }
+    if(!shared){ await deliver(blob,name); toast(share ? 'Este aparelho não partilha ficheiros: o PDF foi descarregado ('+name+').' : 'PDF pronto: '+name); }
   }catch(e){
     if(!(e && e.code==='declined')) toast('Não foi possível gerar o PDF. O registo ficou guardado.');
   }finally{ busy=false; renderHeader(); }

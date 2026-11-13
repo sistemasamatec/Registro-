@@ -204,3 +204,13 @@ async function boot(){
   }
   showAuth('login');
 }
+
+/* ---------- instalar como app, sessão e ligação ---------- */
+if('serviceWorker' in navigator && /^https?:/.test(location.protocol)){
+  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+var IDLE_MS = 30*60*1000, lastAct = Date.now();
+['pointerdown','keydown','scroll','touchstart'].forEach(function(ev){ window.addEventListener(ev,function(){ lastAct = Date.now(); },{passive:true}); });
+setInterval(function(){ if(ME && Date.now()-lastAct > IDLE_MS) logout('Sessão terminada por inactividade. Entra outra vez.'); },30000);
+function netState(){ $('offline').hidden = navigator.onLine!==false; }
+window.addEventListener('online',netState); window.addEventListener('offline',netState); netState();

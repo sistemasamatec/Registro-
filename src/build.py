@@ -21,7 +21,13 @@ if mode == 'cloud':
     assert m
     head = head.replace(m.group(0), '<p class="hint">O acesso é protegido pelo Supabase: sem entrar com e-mail e senha, a base de dados não devolve nenhum dado. Cada pessoa só vê o que o seu perfil permite. Desactivar uma conta bloqueia-a de imediato.</p>')
     pre = '<script src="config.js"></script>\n'
-full = head + '\n' + pre + '<script>\n(function(){\'use strict\';\n' + js + '\n})();\n</script>\n'
+    shell_head = ('<!doctype html>\n<html lang="pt">\n<head>\n<meta charset="utf-8">\n'
+      '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
+      '<meta name="theme-color" content="#1b3a57">\n<link rel="manifest" href="manifest.webmanifest">\n'
+      '<link rel="icon" href="icon-192.png">\n<link rel="apple-touch-icon" href="icon-192.png">\n'
+      '<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}</style>\n')
+    head = shell_head + head.replace('<title>Relatórios AMA TEC</title>','<title>AMA TEC Oficina</title>')
+full = head + '\n' + pre + '<script>\n(function(){\'use strict\';\n' + js + '\n})();\n</script>\n' + ('</body></html>\n' if mode == 'cloud' else '')
 assert '__LOGO__' not in full
 final = '\n'.join(l for l in full.split('\n') if 'window.__amatec' not in l)
 if mode == 'artifact':

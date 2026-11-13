@@ -125,10 +125,11 @@ function fit(){
 }
 
 /* ---------- números e botões ---------- */
+function metaOf(X){ return X.autor && X.createdAt ? ' Registado por '+userName(X.autor)+' em '+fmtDateTime(X.createdAt)+'.' : ''; }
 function renderHeader(){
   var n = numFor(S,'reports',S.code);
   $('numValue').textContent = n || '…';
-  if(S.currentId){ $('numLabel').textContent='A editar o relatório'; $('numNote').textContent='O número mantém-se. Guarda para actualizar.'; }
+  if(S.currentId){ $('numLabel').textContent='A editar o relatório'; $('numNote').textContent='O número mantém-se. Guarda para actualizar.'+metaOf(S); }
   else { $('numLabel').textContent='Próximo nº do relatório'; $('numNote').textContent = db ? 'Atribuído automaticamente ao guardar.' : 'Atribuído automaticamente ao guardar (neste navegador).'; }
   $('btnSave').textContent = S.currentId ? 'Guardar alterações' : 'Guardar';
   var ne = numFor(E,'equipamentos','EQ'); $('numEqValue').textContent = ne || '…';
@@ -136,14 +137,14 @@ function renderHeader(){
   $('btnEqSave').textContent = E.currentId ? 'Guardar alterações' : 'Guardar equipamento';
   var no = numFor(O,'ordens','OS'); $('numOsValue').textContent = no || '…';
   $('numOsLabel').textContent = O.currentId ? 'A editar a ordem de serviço' : 'Próxima ordem de serviço';
-  $('numOsNote').textContent = O.currentId ? 'O número mantém-se. Guarda para actualizar.' : 'Atribuído automaticamente ao guardar.';
+  $('numOsNote').textContent = O.currentId ? 'O número mantém-se. Guarda para actualizar.'+metaOf(O) : 'Atribuído automaticamente ao guardar.';
   $('btnOsSave').textContent = O.currentId ? 'Guardar alterações' : 'Guardar';
   var nc = numFor(CLI,'clientes','CL'); $('numCliValue').textContent = nc || '…';
   $('numCliLabel').textContent = CLI.currentId ? 'A editar o cliente' : 'Próximo nº de cliente';
   $('btnCliSave').textContent = CLI.currentId ? 'Guardar alterações' : 'Guardar cliente';
   [['btnRepDel',S],['btnEqDel',E],['btnOsDel',O],['btnCliDel',CLI]].forEach(function(p){ $(p[0]).hidden = !(isAdmin() && p[1].currentId); });
   $('osRel').textContent = O.relatorio ? 'Relatório associado: '+O.relatorio : 'Ainda sem relatório associado.';
-  ['btnSave','btnPdf','btnNew','btnClear','btnEqSave','btnEqOs','btnEqRep','btnEqNew','btnOsPdf','btnOsSave','btnOsRep','btnOsNew','btnCliSave','btnCliEq','btnCliOs','btnCliRep','btnCliNew','btnRepDel','btnEqDel','btnOsDel','btnCliDel'].forEach(function(id){ $(id).disabled = busy; });
+  ['btnSave','btnPdf','btnNew','btnClear','btnEqSave','btnEqOs','btnEqRep','btnEqNew','btnOsPdf','btnOsSave','btnOsRep','btnOsNew','btnCliSave','btnCliEq','btnCliOs','btnCliRep','btnCliNew','btnRepDel','btnEqDel','btnOsDel','btnCliDel','btnShare','btnOsShare'].forEach(function(id){ $(id).disabled = busy; });
 }
 
 /* ---------- listas com pesquisa ---------- */

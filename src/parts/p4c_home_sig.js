@@ -118,3 +118,15 @@ armDelete('btnRepDel','o relatório',function(){ return doDelete('reports',S,fun
 armDelete('btnEqDel','o equipamento',function(){ return doDelete('equipamentos',E,function(){ E = blankEq(); },'Equipamento'); });
 armDelete('btnOsDel','a ordem',function(){ return doDelete('ordens',O,function(){ O = blankOs(); },'Ordem'); });
 armDelete('btnCliDel','o cliente',function(){ return doDelete('clientes',CLI,function(){ CLI = blankCli(); },'Cliente'); });
+
+/* ---------- partilhar o PDF (WhatsApp, e-mail…) ---------- */
+$('btnShare').addEventListener('click', async function(){
+  if(busy) return;
+  var id = await doSave(); if(!id) return;
+  await makeAndDeliver(function(logo,sig){ return buildPdf({number:id}, logo, sig); }, id+'.pdf', S.assinatura, true);
+});
+$('btnOsShare').addEventListener('click', async function(){
+  if(busy) return;
+  var id = await doSaveOs(); if(!id) return;
+  await makeAndDeliver(function(logo,sig){ return buildOsPdf(O, logo, sig); }, id+'.pdf', O.assinatura, true);
+});
