@@ -15,6 +15,9 @@ Aplicação da **AMA TEC** para a oficina: **clientes**, **equipamentos**, **ord
 | Código-fonte da página | `src/parts/` + `src/build.py` |
 
 - Números automáticos: `CL-0001` (cliente), `EQ-0001` (equipamento), `OS-0001` (ordem), e por tipo nos relatórios (`MLR-0001`, `TV-0001`, `FOG-0001`…). A numeração é feita no servidor e nunca repete.
+- **Início** com resumo (ordens em curso, equipamentos na oficina, ordens por assinar, relatórios do mês) e atalhos.
+- **Assinatura do cliente no ecrã** (dedo ou rato) nas ordens de serviço e nos relatórios; aparece no PDF.
+- **Eliminar** registos: só administradores (pede confirmação com um segundo toque). Os técnicos criam e editam.
 - Perfis: o **administrador** gere utilizadores e cópias de segurança; o **técnico** usa clientes, equipamentos, ordens e relatórios.
 - Cada pessoa precisa de e-mail e senha. Sem sessão, a base de dados não devolve nada.
 

@@ -58,7 +58,7 @@ $('btnOsRep').addEventListener('click', async function(){
 $('btnOsPdf').addEventListener('click', async function(){
   if(busy) return;
   var id = await doSaveOs(); if(!id) return;
-  await makeAndDeliver(function(logo){ return buildOsPdf(O, logo); }, id+'.pdf');
+  await makeAndDeliver(function(logo,sig){ return buildOsPdf(O, logo, sig); }, id+'.pdf', O.assinatura);
 });
 $('osList').addEventListener('click',function(e){
   var b = e.target.closest('.item'); if(!b) return;

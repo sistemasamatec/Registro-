@@ -20,5 +20,5 @@ function enterApp(u){
   ME = u; sessSet(u.username);
   $('authView').hidden = true; $('appView').hidden = false;
   ['lgPass','suPass','suPass2'].forEach(function(id){ $(id).value=''; });
-  applyWho(); refreshSelects(); syncAll(); renderLists(); showView('rel'); tab('form'); fit();
+  applyWho(); refreshSelects(); syncAll(); renderLists(); showView('home'); tab('form'); fit();
 }

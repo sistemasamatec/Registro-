@@ -20,9 +20,9 @@ var HOLDER = 'p' + Math.random().toString(36).slice(2, 10);
 var ITER = 100000;
 
 var CLI_F = ['nome','contacto','email','nif','endereco','observacoes'];
-var REP_F = ['clienteId','code','date','nome','contacto','email','endereco','nif','marca','modelo','serie','capacidade','intro','componentes','servicos','valor','conclusao','os'];
+var REP_F = ['assinatura','assinadoEm','clienteId','code','date','nome','contacto','email','endereco','nif','marca','modelo','serie','capacidade','intro','componentes','servicos','valor','conclusao','os'];
 var EQ_FLD = ['clienteId','code','date','estado','marca','modelo','serie','capacidade','nome','contacto','email','endereco','nif','avaria','acessorios','estadoFisico','observacoes'];
-var OS_FLD = ['clienteId','date','equipId','code','marca','modelo','serie','capacidade','nome','contacto','email','endereco','nif','avaria','acessorios','estadoFisico','servico','atendimento','prioridade','tecnico','estado','dataPrevista','orcamento','sinal','observacoes','relatorio'];
+var OS_FLD = ['assinatura','assinadoEm','clienteId','date','equipId','code','marca','modelo','serie','capacidade','nome','contacto','email','endereco','nif','avaria','acessorios','estadoFisico','servico','atendimento','prioridade','tecnico','estado','dataPrevista','orcamento','sinal','observacoes','relatorio'];
 
 var COL = {
   reports:      {path:'reports',      ls:'amatec_relatorios_v1',    key:'number',   re:/^([A-Z0-9]{2,4})-(\d{4,})$/, fields:REP_F},
@@ -53,6 +53,11 @@ function norm(s){ return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/
 function clip(v,n){ return String(v==null?'':v).slice(0,n); }
 function lines(t){ return String(t||'').split('\n').map(function(x){return x.trim();}).filter(Boolean); }
 function fmtDate(iso){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m? m[3]+'/'+m[2]+'/'+m[1] : ''; }
+function fmtDateTime(iso){
+  if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return '';
+  var p=function(n){ return String(n).padStart(2,'0'); };
+  return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
 function fmtKz(v){
   var s = String(v||'').trim(); if(!s) return '';
   var dec = '', m = s.match(/^(.*?)[,.](\d{1,2})$/);
@@ -145,7 +150,13 @@ async function saveDoc(col,prefix,X,fields,extra){
   X.currentId=r.id; X.number=r.id; X.seq=r.seq; X.createdAt=now; X.autor=rec.autor;
   return r.id;
 }
+async function deleteDoc(col,key){
+  if(db){ await db.doc(COL[col].path+'/'+key).delete(); return; }
+  var kf = COL[col].key;
+  D[col] = D[col].filter(function(r){ return r[kf]!==key; }); lsSet(COL[col].ls, D[col]); renderLists();
+}
 async function guarded(fn,msg){
+  if(typeof commitSigs==='function') commitSigs();
   busy=true; renderHeader();
   try{ return await fn(); }
   catch(e){ toast(e && e.code==='quota_exceeded' ? 'A base de dados está cheia. Exporta uma cópia de segurança antes de continuar.' : msg); return null; }

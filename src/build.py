@@ -3,7 +3,7 @@ mode = sys.argv[1] if len(sys.argv) > 1 else 'artifact'
 head = open('parts/p1_head.html', encoding='utf-8').read()
 logo = open('logo256.b64.txt').read().strip()
 assert logo.startswith('data:image/png;base64,')
-names = ['p2_core.js','p3_ui.js','p4_modules.js','p4b_clientes.js','p5_pdf.js','p6a_common.js']
+names = ['p2_core.js','p3_ui.js','p4_modules.js','p4b_clientes.js','p4c_home_sig.js','p5_pdf.js','p6a_common.js']
 names += ['p6_boot.js'] if mode == 'artifact' else ['p6_cloud.js']
 names += ['p7_tail.js']
 js = '\n'.join(open('parts/'+p, encoding='utf-8').read() for p in names)

@@ -91,6 +91,12 @@ var DBSHIM = {
         var has = !!(rows && rows.length);
         return {exists:has, data:function(){ return has ? rows[0].data : undefined; }};
       },
+      delete: async function(){
+        if(col==='users') return;
+        var rows = await api('/rest/v1/'+col+'?key=eq.'+encodeURIComponent(key),{method:'DELETE',headers:{Prefer:'return=representation'}});
+        if(!rows || !rows.length){ var e = new Error('negado'); e.code = 'negado'; throw e; }
+        try{ await pollCol(col); }catch(e2){}
+      },
       acquire: async function(){ return {acquired:true}; }
     };
   },

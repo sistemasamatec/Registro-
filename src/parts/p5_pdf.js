@@ -37,7 +37,7 @@ function ell(s,maxW,b,size){
   var out=''; for(var ch of s){ if(textW(out+ch+'…',b,size)>maxW) break; out+=ch; } return out+'…';
 }
 
-function PdfDoc(logo){
+function PdfDoc(logo,sig){
   var pages=[], shades=[], ops=null;
   var X = function(x){ return n2(x*PK); }, Y = function(y){ return n2(PH - y*PK); };
   var P = function(x,y){ return X(x)+' '+Y(y); };
@@ -74,6 +74,8 @@ function PdfDoc(logo){
     ops.push('BT '+rgbOf(o.c||'#000000')+' rg '+fn+' '+n2(s*PK)+' Tf '+n2(cs*PK)+' Tc '+P(px,base)+' Td '+pdfStr(str)+' Tj ET');
     return w;
   };
+  self.sigSize = function(){ return sig ? {w:sig.w,h:sig.h} : null; };
+  self.sigImage = function(x,y,w,h){ if(sig) ops.push('q '+n2(w*PK)+' 0 0 '+n2(h*PK)+' '+X(x)+' '+Y(y+h)+' cm /Im2 Do Q'); };
   self.image = function(x,y,w,h){ if(logo) ops.push('q '+n2(w*PK)+' 0 0 '+n2(h*PK)+' '+X(x)+' '+Y(y+h)+' cm /Im1 Do Q'); };
 
   self.finish = function(){
@@ -90,7 +92,7 @@ function PdfDoc(logo){
       var fs=[], i; for(i=0;i<st.length-1;i++) fs.push(fn2(st[i][1],st[i+1][1]));
       return '<< /FunctionType 3 /Domain [0 1] /Functions [ '+fs.join(' ')+' ] /Bounds [ '+st.slice(1,-1).map(function(s){return s[0];}).join(' ')+' ] /Encode [ '+fs.map(function(){return '0 1';}).join(' ')+' ] >>';
     }
-    var base = 8 + shades.length;
+    var sb = 8 + shades.length, base = sb + (sig?2:0);
     put(latin1('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n'));
     obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
     obj(2,'<< /Type /Pages /Kids [ '+pages.map(function(_,i){ return (base+2*i)+' 0 R'; }).join(' ')+' ] /Count '+pages.length+' >>');
@@ -104,7 +106,12 @@ function PdfDoc(logo){
     shades.forEach(function(s,i){
       obj(8+i,'<< /ShadingType 2 /ColorSpace /DeviceRGB /Coords ['+s.co.join(' ')+'] /Function '+fnOf(s.stops)+' /Extend [true true] >>');
     });
-    var res = '<< /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >>'+(logo?' /XObject << /Im1 6 0 R >>':'')+
+    if(sig){
+      obj(sb,'/Type /XObject /Subtype /Image /Width '+sig.w+' /Height '+sig.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /SMask '+(sb+1)+' 0 R', sig.rgb);
+      obj(sb+1,'/Type /XObject /Subtype /Image /Width '+sig.w+' /Height '+sig.h+' /ColorSpace /DeviceGray /BitsPerComponent 8', sig.a);
+    }
+    var xo = (logo?'/Im1 6 0 R ':'')+(sig?'/Im2 '+sb+' 0 R':'');
+    var res = '<< /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >>'+(xo?' /XObject << '+xo+' >>':'')+
       (shades.length?' /Shading << '+shades.map(function(_,i){ return '/Sh'+i+' '+(8+i)+' 0 R'; }).join(' ')+' >>':'')+' >>';
     pages.forEach(function(p,i){
       obj(base+2*i,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources '+res+' /Contents '+(base+2*i+1)+' 0 R >>');
@@ -245,9 +252,15 @@ function PdfKit(d,cfg){
     K.y += h;
   };
   K.close = function(note){
-    if(K.y>(note?940:985)) K.cont();
+    var sz = d.sigSize();
+    if(K.y>((note||sz)?940:985)) K.cont();
     if(note) d.text(44,SIGN_Y-40,note,{s:11,c:C.ink2,lh:16});
     d.line(44,SIGN_Y,377,SIGN_Y,C.sign,1); d.line(417,SIGN_Y,750,SIGN_Y,C.sign,1);
+    if(sz){
+      var s = Math.min(250/sz.w, 64/sz.h), w = sz.w*s, h = sz.h*s;
+      d.sigImage(583.5-w/2, SIGN_Y-4-h, w, h);
+      if(cfg.sigDate) d.text(583.5,SIGN_Y+21,'Assinado no ecrã em '+cfg.sigDate,{a:'c',s:9.5,c:C.mute,lh:12});
+    }
     d.text(210.5,SIGN_Y+6,'Técnico responsável — AMA TEC',{a:'c',s:10.5,c:C.mute,cs:0.5,lh:14});
     d.text(583.5,SIGN_Y+6,'Cliente (nome e assinatura)',{a:'c',s:10.5,c:C.mute,cs:0.5,lh:14});
     var n = d.count(), i;
@@ -269,8 +282,8 @@ function partyRows(X){
     B:[['Equipamento',typeName(X.code)],['Marca',X.marca],['Capacidade',X.capacidade],['Modelo',X.modelo],['Nº de série',X.serie]]
   };
 }
-function buildPdf(info, logo){
-  var K = PdfKit(PdfDoc(logo),{kicker:'DIAGNÓSTICO E ORÇAMENTO',title:'Relatório Técnico de Reparação',numLabel:'Nº do relatório',contLabel:'Relatório nº',
+function buildPdf(info, logo, sig){
+  var K = PdfKit(PdfDoc(logo,sig),{sigDate:fmtDateTime(S.assinadoEm),kicker:'DIAGNÓSTICO E ORÇAMENTO',title:'Relatório Técnico de Reparação',numLabel:'Nº do relatório',contLabel:'Relatório nº',
     number:info.number,dateStr:fmtDate(S.date),tag:S.os?('OS '+S.os):''});
   var pr = partyRows(S);
   K.head1(); K.boxes('DADOS DO CLIENTE',pr.A,'DADOS DO EQUIPAMENTO',pr.B);
@@ -282,8 +295,8 @@ function buildPdf(info, logo){
   K.sectionHead('Conclusão'); if(S.conclusao.trim()) K.para(S.conclusao); K.gap(16);
   return K.close();
 }
-function buildOsPdf(X, logo){
-  var K = PdfKit(PdfDoc(logo),{kicker:'ASSISTÊNCIA TÉCNICA',title:'Ordem de Serviço',numLabel:'Nº da ordem',contLabel:'Ordem de serviço nº',
+function buildOsPdf(X, logo, sig){
+  var K = PdfKit(PdfDoc(logo,sig),{sigDate:fmtDateTime(X.assinadoEm),kicker:'ASSISTÊNCIA TÉCNICA',title:'Ordem de Serviço',numLabel:'Nº da ordem',contLabel:'Ordem de serviço nº',
     number:X.number,dateStr:fmtDate(X.date),tag:''});
   var pr = partyRows(X), one = function(t){ return String(t||'').replace(/\s+/g,' ').trim(); };
   K.head1(); K.boxes('DADOS DO CLIENTE',pr.A,'DADOS DO EQUIPAMENTO',pr.B);
@@ -301,12 +314,14 @@ function buildOsPdf(X, logo){
   return K.close('Autorizo a execução do serviço descrito nesta ordem de serviço.');
 }
 
-function loadLogo(){
+function loadRaw(src,maxW){
   return new Promise(function(res){
+    if(!src){ res(null); return; }
     var im = new Image();
     im.onload = function(){
       try{
-        var w=256, h=256, c=document.createElement('canvas'); c.width=w; c.height=h;
+        var w = Math.min(maxW, im.naturalWidth||maxW), h = Math.max(1, Math.round(w*(im.naturalHeight||w)/(im.naturalWidth||w)));
+        var c=document.createElement('canvas'); c.width=w; c.height=h;
         var x=c.getContext('2d'); x.drawImage(im,0,0,w,h);
         var px=x.getImageData(0,0,w,h).data, rgb=new Uint8Array(w*h*3), a=new Uint8Array(w*h), i;
         for(i=0;i<w*h;i++){ rgb[i*3]=px[i*4]; rgb[i*3+1]=px[i*4+1]; rgb[i*3+2]=px[i*4+2]; a[i]=px[i*4+3]; }
@@ -314,9 +329,10 @@ function loadLogo(){
       }catch(e){ res(null); }
     };
     im.onerror = function(){ res(null); };
-    im.src = LOGO;
+    im.src = src;
   });
 }
+function loadLogo(){ return loadRaw(LOGO,256); }
 var logoP = loadLogo();
 
 async function deliver(blob,name){
@@ -325,10 +341,10 @@ async function deliver(blob,name){
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){ URL.revokeObjectURL(url); },5000);
 }
-async function makeAndDeliver(builder,name){
+async function makeAndDeliver(builder,name,sigSrc){
   busy=true; renderHeader();
   try{
-    var blob = builder(await logoP);
+    var blob = builder(await logoP, await loadRaw(sigSrc,640));
     await deliver(blob,name);
     toast('PDF pronto: '+name);
   }catch(e){

@@ -3,7 +3,7 @@
    ===================================================================== */
 /* ---------- estados iniciais ---------- */
 function blank(code){
-  return {clienteId:'', code:code||'MLR', date:today(), nome:'',contacto:'',email:'',endereco:'',nif:'',marca:'',modelo:'',serie:'',capacidade:'',
+  return {assinatura:'', assinadoEm:'', clienteId:'', code:code||'MLR', date:today(), nome:'',contacto:'',email:'',endereco:'',nif:'',marca:'',modelo:'',serie:'',capacidade:'',
     intro:INTRO, componentes:'', servicos:'', valor:'', conclusao:'', os:'', autor:'', currentId:null, number:null, seq:null, createdAt:null};
 }
 /* dados de exemplo FIXOS: máquina de lavar Candy de 7 kg */
@@ -21,7 +21,7 @@ function blankEq(){
     avaria:'',acessorios:'',estadoFisico:'',observacoes:'', autor:'', currentId:null, number:null, seq:null, createdAt:null};
 }
 function blankOs(){
-  return {clienteId:'', date:today(), equipId:'', code:'MLR', marca:'',modelo:'',serie:'',capacidade:'',nome:'',contacto:'',email:'',endereco:'',nif:'',
+  return {assinatura:'', assinadoEm:'', clienteId:'', date:today(), equipId:'', code:'MLR', marca:'',modelo:'',serie:'',capacidade:'',nome:'',contacto:'',email:'',endereco:'',nif:'',
     avaria:'',acessorios:'',estadoFisico:'',servico:'',atendimento:'Na oficina',prioridade:'Normal',tecnico:ME?ME.username:'',estado:'Aberta',
     dataPrevista:'',orcamento:'',sinal:'',observacoes:'',relatorio:'', autor:'', currentId:null, number:null, seq:null, createdAt:null};
 }
@@ -65,7 +65,7 @@ function syncForm(p,obj){
     if(el.value!==v) el.value = v;
   });
 }
-function syncAll(){ syncForm('rep',S); syncForm('eq',E); syncForm('os',O); syncForm('cli',CLI); }
+function syncAll(){ syncForm('rep',S); syncForm('eq',E); syncForm('os',O); syncForm('cli',CLI); if(typeof renderSigs==='function') renderSigs(); }
 
 /* ---------- listas pendentes (selects) ---------- */
 function optHtml(list){ return list.map(function(o){ return '<option value="'+esc(o.v)+'">'+esc(o.t)+'</option>'; }).join(''); }
@@ -141,13 +141,14 @@ function renderHeader(){
   var nc = numFor(CLI,'clientes','CL'); $('numCliValue').textContent = nc || '…';
   $('numCliLabel').textContent = CLI.currentId ? 'A editar o cliente' : 'Próximo nº de cliente';
   $('btnCliSave').textContent = CLI.currentId ? 'Guardar alterações' : 'Guardar cliente';
+  [['btnRepDel',S],['btnEqDel',E],['btnOsDel',O],['btnCliDel',CLI]].forEach(function(p){ $(p[0]).hidden = !(isAdmin() && p[1].currentId); });
   $('osRel').textContent = O.relatorio ? 'Relatório associado: '+O.relatorio : 'Ainda sem relatório associado.';
-  ['btnSave','btnPdf','btnNew','btnClear','btnEqSave','btnEqOs','btnEqRep','btnEqNew','btnOsPdf','btnOsSave','btnOsRep','btnOsNew','btnCliSave','btnCliEq','btnCliOs','btnCliRep','btnCliNew'].forEach(function(id){ $(id).disabled = busy; });
+  ['btnSave','btnPdf','btnNew','btnClear','btnEqSave','btnEqOs','btnEqRep','btnEqNew','btnOsPdf','btnOsSave','btnOsRep','btnOsNew','btnCliSave','btnCliEq','btnCliOs','btnCliRep','btnCliNew','btnRepDel','btnEqDel','btnOsDel','btnCliDel'].forEach(function(id){ $(id).disabled = busy; });
 }
 
 /* ---------- listas com pesquisa ---------- */
 function hay(r){
-  var s=[]; for(var k in r){ if(typeof r[k]==='string') s.push(r[k]); }
+  var s=[]; for(var k in r){ if(typeof r[k]==='string' && k!=='assinatura') s.push(r[k]); }
   s.push(fmtKz(r.valor),fmtKz(r.orcamento),fmtKz(r.sinal),fmtDate(r.date),userName(r.tecnico||r.autor),typeName(r.code));
   return norm(s.join(' '));
 }
@@ -190,7 +191,7 @@ function renderOsList(){
 }
 function renderLists(){
   if(!ME) return;
-  refreshSelects(); renderRepList(); renderEqList(); renderOsList(); renderCliList(); renderXlinks(); renderCliLinks();
+  refreshSelects(); renderRepList(); renderEqList(); renderOsList(); renderCliList(); renderXlinks(); renderCliLinks(); renderHome();
   if(isAdmin()) renderUsers();
   renderHeader(); renderPaper();
 }
@@ -200,10 +201,10 @@ function renderLists(){
 /* ---------- navegação ---------- */
 function showView(v){
   if(v==='adm' && !isAdmin()) v='rel';
-  ['rel','cli','eq','os','adm','conta'].forEach(function(x){ $('v_'+x).hidden = x!==v; });
+  ['home','rel','cli','eq','os','adm','conta'].forEach(function(x){ $('v_'+x).hidden = x!==v; });
   document.querySelectorAll('#nav button').forEach(function(b){ b.setAttribute('aria-selected', String(b.dataset.view===v)); });
   curView = v; window.scrollTo(0,0);
-  if(v==='rel') fit(); if(v==='adm') renderUsers(); if(v==='conta') renderConta(); if(v==='cli') renderCliLinks();
+  if(v==='home') renderHome(); if(v==='rel') fit(); if(v==='adm') renderUsers(); if(v==='conta') renderConta(); if(v==='cli') renderCliLinks();
 }
 $('nav').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) showView(b.dataset.view); });
 $('btnConta').addEventListener('click',function(){ showView('conta'); });
@@ -289,5 +290,5 @@ $('btnAddType').addEventListener('click', async function(){
 $('btnPdf').addEventListener('click', async function(){
   if(busy) return;
   var id = await doSave(); if(!id) return;
-  await makeAndDeliver(function(logo){ return buildPdf({number:id}, logo); }, id+'.pdf');
+  await makeAndDeliver(function(logo,sig){ return buildPdf({number:id}, logo, sig); }, id+'.pdf', S.assinatura);
 });
