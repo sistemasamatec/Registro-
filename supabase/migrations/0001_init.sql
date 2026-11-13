@@ -142,3 +142,11 @@ revoke all on function public.next_number(text)          from public, anon;
 revoke all on function public.bump_counter(text, integer) from public, anon;
 grant execute on function public.next_number(text)          to authenticated;
 grant execute on function public.bump_counter(text, integer) to authenticated;
+
+-- funções internas: não expostas pela API
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+revoke all on function public.keep_one_admin()  from public, anon, authenticated;
+revoke all on function public.is_active()       from public, anon;
+revoke all on function public.is_admin()        from public, anon;
+grant execute on function public.is_active() to authenticated;
+grant execute on function public.is_admin()  to authenticated;
