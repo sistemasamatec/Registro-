@@ -22,7 +22,7 @@ var ITER = 100000;
 var CLI_F = ['nome','contacto','email','nif','endereco','observacoes'];
 var REP_F = ['assinatura','assinadoEm','clienteId','code','date','nome','contacto','email','endereco','nif','marca','modelo','serie','capacidade','intro','componentes','servicos','valor','conclusao','os'];
 var EQ_FLD = ['clienteId','code','date','estado','marca','modelo','serie','capacidade','nome','contacto','email','endereco','nif','avaria','acessorios','estadoFisico','observacoes'];
-var OS_FLD = ['assinatura','assinadoEm','clienteId','date','equipId','code','marca','modelo','serie','capacidade','nome','contacto','email','endereco','nif','avaria','acessorios','estadoFisico','servico','atendimento','prioridade','tecnico','estado','dataPrevista','orcamento','sinal','observacoes','relatorio'];
+var OS_FLD = ['assinatura','assinadoEm','clienteId','date','equipId','code','marca','modelo','serie','capacidade','nome','contacto','email','endereco','nif','avaria','acessorios','estadoFisico','servico','atendimento','prioridade','tecnico','estado','dataPrevista','orcamento','sinal','observacoes','relatorio','checklist'];
 
 var COL = {
   reports:      {path:'reports',      ls:'amatec_relatorios_v1',    key:'number',   re:/^([A-Z0-9]{2,4})-(\d{4,})$/, fields:REP_F},

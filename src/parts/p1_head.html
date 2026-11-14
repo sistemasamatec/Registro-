@@ -186,6 +186,13 @@ details.addtype .btn{margin-top:8px}
 .sigdone img{width:150px;max-width:45%;height:auto;background:#fff;border-radius:6px;border:1px solid var(--line)}
 .sigdone small{color:var(--muted)}
 .offline{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);z-index:60;background:var(--bad-fg);color:var(--bad-bg);text-align:center;font:600 13px var(--font-body);padding:8px 12px}
+.ckrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.ckrow:first-of-type{border-top:0}
+.ckrow>span{font-size:13px;color:var(--fg);min-width:0;flex:1}
+.ckseg{display:flex;gap:4px;flex:none}
+.ckseg button{border:1px solid var(--line);background:transparent;color:var(--muted);font:600 12px var(--font-body);padding:7px 11px;border-radius:7px;cursor:pointer;min-width:44px}
+.ckseg button[aria-pressed="true"]{background:var(--brand2,#1b7f93);border-color:var(--brand2,#1b7f93);color:#fff}
+.ckgen{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
 .catgrp{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
 .catgrp>summary{cursor:pointer;padding:12px 14px;font:600 14px var(--font-head);color:var(--navy);display:flex;gap:10px;align-items:center;list-style:none}
 .catgrp>summary::-webkit-details-marker{display:none}
@@ -463,6 +470,7 @@ details.addtype .btn{margin-top:8px}
         <div class="sec"><h2>Ordem</h2><div class="row" id="osF1"></div></div>
         <div class="sec"><h2>Equipamento</h2><div class="row" id="osF2"></div></div>
         <div class="sec"><h2>Cliente</h2><div class="row" id="osF3"></div></div>
+        <div class="sec" id="osCk"></div>
         <div class="sec"><h2>Trabalho a executar</h2><div class="row" id="osF4"></div></div>
         <div class="sec"><h2>Gestão</h2><div class="row" id="osF5"></div>
           <p class="hint" id="osRel"></p></div>

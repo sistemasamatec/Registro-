@@ -306,6 +306,7 @@ function buildOsPdf(X, logo, sig){
   if(one(X.acessorios)) est.push('Acessórios entregues: '+one(X.acessorios));
   if(one(X.estadoFisico)) est.push('Estado físico à entrada: '+one(X.estadoFisico));
   if(est.length){ K.sectionHead('Estado do equipamento à entrada'); K.bullets(est,true); K.gap(16); }
+  var ck = ckRows(X); if(ck.length){ K.sectionHead('Checklist de receção'); K.infoGrid(ck); K.gap(16); }
   K.sectionHead('Condições do atendimento');
   K.infoGrid([['Atendimento',X.atendimento],['Prioridade',X.prioridade],['Estado',X.estado],
     ['Técnico',userName(X.tecnico)],['Data prevista',fmtDate(X.dataPrevista)],['Orçamento estimado',fmtKz(X.orcamento)],['Sinal pago',fmtKz(X.sinal)]]);

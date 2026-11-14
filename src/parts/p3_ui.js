@@ -23,7 +23,7 @@ function blankEq(){
 function blankOs(){
   return {assinatura:'', assinadoEm:'', clienteId:'', date:today(), equipId:'', code:'MLR', marca:'',modelo:'',serie:'',capacidade:'',nome:'',contacto:'',email:'',endereco:'',nif:'',
     avaria:'',acessorios:'',estadoFisico:'',servico:'',atendimento:'Na oficina',prioridade:'Normal',tecnico:ME?ME.username:'',estado:'Aberta',
-    dataPrevista:'',orcamento:'',sinal:'',observacoes:'',relatorio:'', autor:'', currentId:null, number:null, seq:null, createdAt:null};
+    dataPrevista:'',orcamento:'',sinal:'',observacoes:'',relatorio:'',checklist:'', autor:'', currentId:null, number:null, seq:null, createdAt:null};
 }
 function blankCli(){ return {nome:'',contacto:'',email:'',nif:'',endereco:'',observacoes:'', autor:'', currentId:null, number:null, seq:null, createdAt:null}; }
 function resetStates(){ S = example(); E = blankEq(); O = blankOs(); CLI = blankCli(); }
@@ -65,7 +65,7 @@ function syncForm(p,obj){
     if(el.value!==v) el.value = v;
   });
 }
-function syncAll(){ syncForm('rep',S); syncForm('eq',E); syncForm('os',O); syncForm('cli',CLI); if(typeof renderSigs==='function') renderSigs(); }
+function syncAll(){ syncForm('rep',S); syncForm('eq',E); syncForm('os',O); syncForm('cli',CLI); if(typeof renderCk==='function') renderCk(); if(typeof renderSigs==='function') renderSigs(); }
 
 /* ---------- listas pendentes (selects) ---------- */
 function optHtml(list){ return list.map(function(o){ return '<option value="'+esc(o.v)+'">'+esc(o.t)+'</option>'; }).join(''); }

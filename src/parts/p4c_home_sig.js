@@ -184,3 +184,31 @@ $('catBox').addEventListener('click',function(e){
   var b = e.target.closest && e.target.closest('[data-newtype]'); if(!b) return;
   E = blankEq(); E.code = b.dataset.newtype; syncAll(); renderLists(); showView('eq');
 });
+
+/* ---------- checklist de receção (ordem de serviço) ---------- */
+var CK_ITEMS = [
+  ['liga','Liga (dá sinal de vida)'],['func','Funciona normalmente quando ligado'],['danos','Danos visíveis (riscos, partido)'],
+  ['humid','Sinais de humidade ou oxidação'],['aberto','Já foi aberto ou tem selos violados'],['cabo','Cabo ou carregador entregue'],
+  ['acess','Comando ou outros acessórios entregues'],['bat','Bateria presente'],['pass','Palavra-passe ou dados fornecidos']];
+var CK_OPTS = [['S','Sim'],['N','Não'],['-','N/A']], CK_EST = ['Bom','Razoável','Mau'];
+function ckGet(X){ try{ var o = JSON.parse((X||O).checklist||'{}'); return (o && typeof o==='object') ? o : {}; }catch(e){ return {}; } }
+function ckLabel(v){ return v==='S'?'Sim':v==='N'?'Não':v==='-'?'N/A':''; }
+function renderCk(){
+  var box = $('osCk'); if(!box) return; var c = ckGet(O);
+  box.innerHTML = '<h2>Checklist de receção</h2><p class="hint">Verifica o equipamento à entrada. O que ficar por marcar não aparece no PDF.</p>'
+    + CK_ITEMS.map(function(it){
+      return '<div class="ckrow"><span>'+esc(it[1])+'</span><div class="ckseg" role="group" aria-label="'+esc(it[1])+'">'
+        + CK_OPTS.map(function(o){ return '<button type="button" data-ck="'+it[0]+'" data-v="'+o[0]+'" aria-pressed="'+(c[it[0]]===o[0])+'">'+o[1]+'</button>'; }).join('')+'</div></div>';
+    }).join('')
+    + '<div class="ckrow"><span>Estado geral à entrada</span><div class="ckseg" role="group" aria-label="Estado geral">'
+    + CK_EST.map(function(o){ return '<button type="button" data-ck="estado" data-v="'+o+'" aria-pressed="'+(c.estado===o)+'">'+o+'</button>'; }).join('')+'</div></div>'
+    + '<button class="btn" type="button" id="btnCkClear">Limpar checklist</button>';
+}
+$('osCk').addEventListener('click',function(e){
+  var b = e.target.closest('button'); if(!b) return;
+  if(b.id==='btnCkClear'){ O.checklist=''; renderCk(); return; }
+  if(!b.dataset.ck) return;
+  var c = ckGet(O); if(c[b.dataset.ck]===b.dataset.v) delete c[b.dataset.ck]; else c[b.dataset.ck]=b.dataset.v;
+  O.checklist = Object.keys(c).length ? JSON.stringify(c) : ''; renderCk();
+});
+function ckRows(X){ var c = ckGet(X); return CK_ITEMS.filter(function(it){ return c[it[0]]; }).map(function(it){ return [it[1],ckLabel(c[it[0]])]; }).concat(c.estado?[['Estado geral à entrada',c.estado]]:[]); }
