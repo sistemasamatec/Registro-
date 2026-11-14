@@ -37,6 +37,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .authcard .lg img{width:52px;height:52px;border-radius:13px;flex:none}
 .authcard h1{margin:0;font:700 22px/1.1 var(--font-head)}
 .authcard p{margin:0}
+.btn.link{border:0;background:transparent;color:var(--muted);text-decoration:underline;font-weight:500;min-height:0;padding:6px}
 .authcard form{display:flex;flex-direction:column;gap:12px}
 .err{color:var(--err);font-size:12.5px;min-height:18px;margin:0}
 .chk{flex-direction:row;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
@@ -219,6 +220,23 @@ details.addtype .btn{margin-top:8px}
       <label class="chk" for="lgShow"><input id="lgShow" type="checkbox"> Mostrar senha</label>
       <p class="err" id="lgErr" role="alert"></p>
       <button class="btn primary" type="submit" id="lgBtn">Entrar</button>
+      <button class="btn link" type="button" id="lgForgot">Esqueci a senha</button>
+    </form>
+    <form id="forgotForm" hidden autocomplete="on" novalidate>
+      <p class="hint">Escreve o e-mail da tua conta. Enviamos uma ligação para criares uma nova senha.</p>
+      <label for="fgUser">E-mail<input id="fgUser" type="email" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+      <p class="err" id="fgErr" role="alert"></p>
+      <p class="hint" id="fgOk" role="status"></p>
+      <button class="btn primary" type="submit" id="fgBtn">Enviar ligação</button>
+      <button class="btn link" type="button" id="fgBack">Voltar a entrar</button>
+    </form>
+    <form id="resetForm" hidden autocomplete="off">
+      <p class="hint">Escolhe a tua nova senha (mínimo 6 caracteres).</p>
+      <label for="rsPass">Nova senha<input id="rsPass" type="password" autocomplete="new-password"></label>
+      <label for="rsPass2">Repetir nova senha<input id="rsPass2" type="password" autocomplete="new-password"></label>
+      <p class="err" id="rsErr" role="alert"></p>
+      <button class="btn primary" type="submit" id="rsBtn">Guardar nova senha</button>
+      <button class="btn link" type="button" id="rsBack">Cancelar</button>
     </form>
     <form id="setupForm" hidden autocomplete="off">
       <p class="hint">É o primeiro acesso. Cria a conta do administrador. Depois podes criar as contas dos técnicos na página Administração.</p>

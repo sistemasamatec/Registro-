@@ -47,6 +47,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .authcard .lg img{width:52px;height:52px;border-radius:13px;flex:none}
 .authcard h1{margin:0;font:700 22px/1.1 var(--font-head)}
 .authcard p{margin:0}
+.btn.link{border:0;background:transparent;color:var(--muted);text-decoration:underline;font-weight:500;min-height:0;padding:6px}
 .authcard form{display:flex;flex-direction:column;gap:12px}
 .err{color:var(--err);font-size:12.5px;min-height:18px;margin:0}
 .chk{flex-direction:row;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
@@ -229,6 +230,23 @@ details.addtype .btn{margin-top:8px}
       <label class="chk" for="lgShow"><input id="lgShow" type="checkbox"> Mostrar senha</label>
       <p class="err" id="lgErr" role="alert"></p>
       <button class="btn primary" type="submit" id="lgBtn">Entrar</button>
+      <button class="btn link" type="button" id="lgForgot">Esqueci a senha</button>
+    </form>
+    <form id="forgotForm" hidden autocomplete="on" novalidate>
+      <p class="hint">Escreve o e-mail da tua conta. Enviamos uma ligação para criares uma nova senha.</p>
+      <label for="fgUser">E-mail<input id="fgUser" type="email" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+      <p class="err" id="fgErr" role="alert"></p>
+      <p class="hint" id="fgOk" role="status"></p>
+      <button class="btn primary" type="submit" id="fgBtn">Enviar ligação</button>
+      <button class="btn link" type="button" id="fgBack">Voltar a entrar</button>
+    </form>
+    <form id="resetForm" hidden autocomplete="off">
+      <p class="hint">Escolhe a tua nova senha (mínimo 6 caracteres).</p>
+      <label for="rsPass">Nova senha<input id="rsPass" type="password" autocomplete="new-password"></label>
+      <label for="rsPass2">Repetir nova senha<input id="rsPass2" type="password" autocomplete="new-password"></label>
+      <p class="err" id="rsErr" role="alert"></p>
+      <button class="btn primary" type="submit" id="rsBtn">Guardar nova senha</button>
+      <button class="btn link" type="button" id="rsBack">Cancelar</button>
     </form>
     <form id="setupForm" hidden autocomplete="off">
       <p class="hint">É o primeiro acesso. Cria a conta do administrador. Depois podes criar as contas dos técnicos na página Administração.</p>
@@ -2061,8 +2079,10 @@ function showAuth(mode){
   $('authLoading').hidden = mode!=='loading';
   $('loginForm').hidden = mode!=='login';
   $('setupForm').hidden = mode!=='setup';
-  $('authSub').textContent = mode==='setup' ? 'Primeiro acesso' : (mode==='login' ? 'Entrar na oficina' : 'A carregar…');
+  $('forgotForm').hidden = mode!=='forgot'; $('resetForm').hidden = mode!=='reset';
+  $('authSub').textContent = mode==='setup' ? 'Primeiro acesso' : (mode==='forgot' ? 'Recuperar senha' : mode==='reset' ? 'Nova senha' : mode==='login' ? 'Entrar na oficina' : 'A carregar…');
   if(mode==='login') setTimeout(function(){ try{ $('lgUser').focus(); }catch(e){} },50);
+  if(mode==='forgot') setTimeout(function(){ try{ $('fgUser').focus(); }catch(e){} },50);
   if(mode==='setup') setTimeout(function(){ try{ $('suName').focus(); }catch(e){} },50);
 }
 function enterApp(u){
@@ -2262,8 +2282,61 @@ $('loginForm').addEventListener('submit', async function(e){
 $('setupForm').addEventListener('submit',function(e){ e.preventDefault(); });
 $('btnSair').addEventListener('click',function(){ logout(); });
 
+/* ---------- recuperação de senha ---------- */
+var RECOVERY = null;
+function readRecovery(){
+  var h = String(location.hash||'').replace(/^#/,''); if(h.indexOf('=')<0) return null;
+  var q = {}; h.split('&').forEach(function(p){ var i=p.indexOf('='); if(i>0) q[decodeURIComponent(p.slice(0,i))]=decodeURIComponent(p.slice(i+1).replace(/\+/g,' ')); });
+  if(!(q.type==='recovery' && q.access_token) && !q.error) return null;
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  return q;
+}
+$('lgForgot').addEventListener('click',function(){ $('fgUser').value = $('lgUser').value.trim(); $('fgErr').textContent=''; $('fgOk').textContent=''; showAuth('forgot'); });
+$('fgBack').addEventListener('click',function(){ showAuth('login'); });
+$('rsBack').addEventListener('click',function(){ sess = null; RECOVERY = null; showAuth('login'); });
+$('forgotForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var em = $('fgUser').value.trim().toLowerCase(), er = $('fgErr'); er.textContent=''; $('fgOk').textContent='';
+  if(loginInvalid(em)){ er.textContent = 'Escreve um e-mail válido.'; return; }
+  $('fgBtn').disabled = true;
+  try{
+    var back = encodeURIComponent(location.origin+location.pathname);
+    var r = await rawFetch('/auth/v1/recover?redirect_to='+back,{method:'POST',auth:false,body:{email:em}});
+    if(r.status===429) er.textContent = 'Já pediste várias vezes. Aguarda alguns minutos e tenta outra vez.';
+    else if(r.status>=500 || r.status===0) er.textContent = 'Não foi possível enviar o e-mail agora. Tenta mais tarde ou fala com o administrador.';
+    else $('fgOk').textContent = 'Se este e-mail tem conta, enviámos uma ligação. Abre o e-mail neste aparelho (vê também o spam). A ligação dura pouco tempo.';
+  }catch(x){ er.textContent = 'Não foi possível ligar ao servidor. Verifica a internet.'; }
+  finally{ $('fgBtn').disabled = false; }
+});
+$('resetForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var a = $('rsPass').value, b = $('rsPass2').value, er = $('rsErr'); er.textContent='';
+  if(a.length<6){ er.textContent = 'A senha precisa de pelo menos 6 caracteres.'; return; }
+  if(a!==b){ er.textContent = 'As duas senhas não são iguais.'; return; }
+  if(!RECOVERY){ showAuth('login'); return; }
+  $('rsBtn').disabled = true;
+  try{
+    var r = await rawFetch('/auth/v1/user',{method:'PUT',body:{password:a}});
+    if(!r.ok){
+      var t=''; try{ t = await r.text(); }catch(x){}
+      er.textContent = /same|different/i.test(t) ? 'A nova senha tem de ser diferente da anterior.' : (r.status===401||r.status===403 ? 'A ligação expirou. Pede uma nova em "Esqueci a senha".' : 'Não foi possível guardar a senha. Tenta outra vez.');
+      return;
+    }
+    sess = null; RECOVERY = null; $('rsPass').value=''; $('rsPass2').value='';
+    showAuth('login'); toast('Senha alterada. Entra com a nova senha.');
+  }catch(x){ er.textContent = 'Não foi possível ligar ao servidor. Verifica a internet.'; }
+  finally{ $('rsBtn').disabled = false; }
+});
+
+window.addEventListener('hashchange',function(){ if(/type=recovery|error=/.test(location.hash)) location.reload(); });
 async function boot(){
   showAuth('loading');
+  var rc = readRecovery();
+  if(rc && SBURL && SBKEY){
+    if(rc.error){ showAuth('login'); $('lgErr').textContent = 'A ligação de recuperação expirou ou já foi usada. Pede uma nova em "Esqueci a senha".'; return; }
+    RECOVERY = rc; sess = {access_token:rc.access_token, refresh_token:'', expires_at:Math.floor(Date.now()/1000)+3000};
+    showAuth('reset'); return;
+  }
   if(!SBURL || !SBKEY){
     showAuth('login'); $('lgErr').textContent = 'Falta configurar o ficheiro config.js (endereço e chave pública do Supabase).'; $('lgBtn').disabled = true; return;
   }

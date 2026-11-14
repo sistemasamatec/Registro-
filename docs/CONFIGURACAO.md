@@ -47,3 +47,11 @@ No artefacto: **Administração → Exportar cópia completa (JSON)**. Na nova p
 
 ## Cópias de segurança
 **Administração → Exportar** (CSV ou JSON) quando quiseres. O Supabase também faz cópias automáticas nos planos pagos.
+
+## Recuperação de senha (e-mail)
+
+No painel do Supabase: **Authentication → URL Configuration**
+- **Site URL:** `https://sistemasamatec.github.io/Registro-/`
+- **Redirect URLs:** adicionar `https://sistemasamatec.github.io/Registro-/`
+
+Sem isto, a ligação enviada por e-mail aponta para o endereço errado. O envio de e-mails do plano gratuito é limitado (poucos por hora); para mais, configura um SMTP próprio em **Authentication → SMTP Settings**. Alternativa sempre disponível: o administrador define uma nova senha na página Administração.

@@ -12,8 +12,10 @@ function showAuth(mode){
   $('authLoading').hidden = mode!=='loading';
   $('loginForm').hidden = mode!=='login';
   $('setupForm').hidden = mode!=='setup';
-  $('authSub').textContent = mode==='setup' ? 'Primeiro acesso' : (mode==='login' ? 'Entrar na oficina' : 'A carregar…');
+  $('forgotForm').hidden = mode!=='forgot'; $('resetForm').hidden = mode!=='reset';
+  $('authSub').textContent = mode==='setup' ? 'Primeiro acesso' : (mode==='forgot' ? 'Recuperar senha' : mode==='reset' ? 'Nova senha' : mode==='login' ? 'Entrar na oficina' : 'A carregar…');
   if(mode==='login') setTimeout(function(){ try{ $('lgUser').focus(); }catch(e){} },50);
+  if(mode==='forgot') setTimeout(function(){ try{ $('fgUser').focus(); }catch(e){} },50);
   if(mode==='setup') setTimeout(function(){ try{ $('suName').focus(); }catch(e){} },50);
 }
 function enterApp(u){
