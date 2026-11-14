@@ -186,6 +186,19 @@ details.addtype .btn{margin-top:8px}
 .sigdone img{width:150px;max-width:45%;height:auto;background:#fff;border-radius:6px;border:1px solid var(--line)}
 .sigdone small{color:var(--muted)}
 .offline{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);z-index:60;background:var(--bad-fg);color:var(--bad-bg);text-align:center;font:600 13px var(--font-body);padding:8px 12px}
+.catgrp{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.catgrp>summary{cursor:pointer;padding:12px 14px;font:600 14px var(--font-head);color:var(--navy);display:flex;gap:10px;align-items:center;list-style:none}
+.catgrp>summary::-webkit-details-marker{display:none}
+.catgrp>summary .badge{margin-left:auto}
+.catrow{display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--line);font-size:13px}
+.catrow label{display:flex;flex-direction:row;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;text-align:left;font-size:13px;color:var(--fg)}
+.catrow input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.catrow .cd{font:700 12px var(--font-head);letter-spacing:.5px;color:var(--accent);min-width:38px}
+.catrow .nm{overflow:hidden;text-overflow:ellipsis}
+.catrow .ct{color:var(--muted);font-size:12px;white-space:nowrap}
+.catrow.off .nm{text-decoration:line-through;color:var(--muted)}
+.catrow .btn{flex:none}
+@media (max-width:560px){.catrow{flex-wrap:wrap}.catrow .ct{order:3;width:100%;padding-left:48px;text-align:left}}
 </style>
 
 <!-- ============ ENTRADA ============ -->
@@ -222,6 +235,7 @@ details.addtype .btn{margin-top:8px}
       <button type="button" data-view="cli" aria-selected="false">Clientes</button>
       <button type="button" data-view="eq" aria-selected="false">Equipamentos</button>
       <button type="button" data-view="os" aria-selected="false">Ordens de serviço</button>
+      <button type="button" data-view="cat" aria-selected="false">Catálogo</button>
       <button type="button" data-view="adm" aria-selected="false" id="navAdm" hidden>Administração</button>
     </nav>
     <div class="who">
@@ -471,6 +485,22 @@ details.addtype .btn{margin-top:8px}
         </div>
         <p class="hint" id="osInfo"></p>
         <div class="list" id="osList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- CATÁLOGO / CHECKLIST DE EQUIPAMENTOS ---------- -->
+  <section id="v_cat" hidden>
+    <div class="app wide">
+      <div class="panel">
+        <div class="homehead"><h1>Checklist de equipamentos</h1>
+          <p class="hint" id="catSum"></p></div>
+        <div class="filters">
+          <label for="catSearch">Pesquisar tipo de equipamento<input id="catSearch" type="search" placeholder="Nome ou código (ex.: frigorífico, MLR)…" autocomplete="off"></label>
+          <label class="chk" for="catUsed"><input id="catUsed" type="checkbox"> Só os que já têm registos</label>
+        </div>
+        <p class="hint">Marca os equipamentos que a AMA TEC repara. Só os marcados aparecem nas listas ao registar equipamentos, ordens e relatórios. Cada tipo tem o seu código, que dá o número dos relatórios (ex.: FRG-0001). Só o administrador altera as marcas.</p>
+        <div id="catBox" class="grp"></div>
       </div>
     </div>
   </section>

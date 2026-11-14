@@ -5,16 +5,16 @@ var $ = function(id){ return document.getElementById(id); };
 var LOGO = $('logoTop').getAttribute('src');
 $('pLogo').src = LOGO; $('authLogo').src = LOGO;
 
-var DEFAULT_TYPES = [
-  {code:'TV',  name:'Televisor'},
-  {code:'FOG', name:'Fogão'},
-  {code:'MLR', name:'Máquina de lavar roupa'},
-  {code:'MLL', name:'Máquina de lavar loiça'},
-  {code:'AFR', name:'Air fryer'},
-  {code:'FRG', name:'Frigorífico'},
-  {code:'ARC', name:'Ar condicionado'},
-  {code:'MIC', name:'Micro-ondas'}
+var CATALOG = [
+  {cat:'Equipamentos domésticos', items:[['FRG','Frigorífico'],['ACO','Arca congeladora'],['GEL','Geleira'],['MLR','Máquina de lavar roupa'],['MSR','Máquina de secar roupa'],['MLL','Máquina de lavar loiça'],['MIC','Micro-ondas'],['FOE','Forno eléctrico'],['FGE','Fogão eléctrico'],['FGG','Fogão a gás'],['AFR','Air fryer'],['EXA','Exaustor'],['MCF','Máquina de café'],['LIQ','Liquidificador'],['BAT','Batedeira'],['TOR','Torradeira'],['FEN','Ferro de engomar'],['ASP','Aspirador'],['VEN','Ventoinha'],['CHA','Chaleira eléctrica'],['TAC','Termoacumulador'],['PIN','Placa de indução'],['PVC','Placa vitrocerâmica'],['SAN','Sanduicheira'],['FRE','Fritadeira eléctrica']]},
+  {cat:'Equipamentos industriais', items:[['MLI','Máquina de lavar roupa industrial'],['MSI','Máquina de secar roupa industrial'],['CAL','Calandra industrial'],['LLI','Máquina de lavar loiça industrial'],['FGI','Fogão industrial'],['FOI','Forno industrial'],['FRI','Fritadeira industrial'],['FGX','Fogão industrial a gás'],['PLA','Plancha industrial'],['GRI','Grelhador industrial'],['CFR','Câmara frigorífica'],['ACI','Arca congeladora industrial'],['VIT','Vitrina refrigerada'],['BFR','Balcão frigorífico'],['MGE','Máquina de gelo'],['MCP','Máquina de café profissional'],['EXI','Exaustor industrial'],['SEF','Sistema de extracção de fumos'],['AMS','Amassadeira industrial'],['BAI','Batedeira industrial'],['COA','Cortador de alimentos'],['MPA','Máquina de preparação alimentar'],['CPA','Compressor de ar'],['ASI','Aspirador industrial'],['ELH','Equipamento de lavandaria hoteleira']]},
+  {cat:'Electrónica', items:[['TLE','Televisor LED'],['TLC','Televisor LCD'],['STV','Smart TV'],['MON','Monitor'],['PEL','Placa electrónica'],['FAL','Fonte de alimentação'],['COM','Comando electrónico'],['AMP','Amplificador de som'],['COL','Coluna de som'],['SAU','Sistema de áudio'],['CEL','Circuito electrónico'],['INV','Inversor eléctrico'],['EST','Estabilizador de tensão'],['UPS','UPS']]},
+  {cat:'Informática e equipamentos comerciais', items:[['CPM','Computador de mesa'],['CPP','Computador portátil'],['ITE','Impressora térmica'],['ICO','Impressora convencional'],['LCB','Leitor de código de barras'],['POS','Terminal POS'],['BDI','Balança digital'],['BCO','Balança comercial'],['BIN','Balança industrial'],['GAV','Gaveta de dinheiro'],['EFA','Equipamento de facturação']]},
+  {cat:'Jardinagem, limpeza e oficina', items:[['MLC','Máquina de lavar carros'],['MAP','Máquina de alta pressão'],['MCR','Máquina de cortar relva'],['ROC','Roçadora eléctrica'],['CMP','Compressor'],['FEL','Ferramenta eléctrica'],['MPO','Máquina de polir'],['ELV','Equipamento de limpeza a vapor'],['BAG','Bomba de água']]},
+  {cat:'Outro', items:[['OUT','Outro'],['TV','Televisor'],['FOG','Fogão'],['ARC','Ar condicionado']]}
 ];
+var DEFAULT_TYPES = [];
+CATALOG.forEach(function(c){ c.items.forEach(function(i){ DEFAULT_TYPES.push({code:i[0],name:i[1],cat:c.cat}); }); });
 var INTRO = 'Após a verificação técnica do equipamento, foram identificadas necessidades de intervenção nos seguintes componentes:';
 var HOLDER = 'p' + Math.random().toString(36).slice(2, 10);
 var ITER = 100000;
@@ -86,9 +86,22 @@ function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 
 /* ---------- tipos e utilizadores ---------- */
 function allTypes(){
-  var seen = {}, out=[];
-  DEFAULT_TYPES.concat(D.tipos).forEach(function(t){ if(!seen[t.code]){ seen[t.code]=1; out.push(t); } });
+  var over = {}, out = [];
+  D.tipos.forEach(function(t){ over[t.code] = t; });
+  DEFAULT_TYPES.forEach(function(t){ out.push({code:t.code, name:t.name, cat:t.cat, off:!!(over[t.code] && over[t.code].off)}); });
+  D.tipos.forEach(function(t){ if(!DEFAULT_TYPES.some(function(d){ return d.code===t.code; })) out.push({code:t.code, name:t.name, cat:'Outro', off:!!t.off}); });
   return out;
+}
+function typeOpts(keep){
+  var by = {}, order = [];
+  allTypes().forEach(function(t){
+    if(t.off && t.code!==keep) return;
+    if(!by[t.cat]){ by[t.cat] = []; order.push(t.cat); }
+    by[t.cat].push(t);
+  });
+  return order.map(function(c){
+    return '<optgroup label="'+esc(c)+'">'+by[c].map(function(t){ return '<option value="'+esc(t.code)+'">'+esc(t.name)+' ('+esc(t.code)+')</option>'; }).join('')+'</optgroup>';
+  }).join('');
 }
 function typeOf(code){ return allTypes().filter(function(t){ return t.code===code; })[0]; }
 function typeName(code){ var t=typeOf(code); return t ? t.name : (code||''); }

@@ -71,8 +71,7 @@ function syncAll(){ syncForm('rep',S); syncForm('eq',E); syncForm('os',O); syncF
 function optHtml(list){ return list.map(function(o){ return '<option value="'+esc(o.v)+'">'+esc(o.t)+'</option>'; }).join(''); }
 function setOpts(el,html,val){ if(el){ el.innerHTML=html; el.value = val==null?'':val; } }
 function refreshSelects(){
-  var tHtml = optHtml(allTypes().map(function(t){ return {v:t.code,t:t.name+' ('+t.code+')'}; }));
-  setOpts($('code'),tHtml,S.code); setOpts($('eq_code'),tHtml,E.code); setOpts($('os_code'),tHtml,O.code);
+  setOpts($('code'),typeOpts(S.code),S.code); setOpts($('eq_code'),typeOpts(E.code),E.code); setOpts($('os_code'),typeOpts(O.code),O.code);
   var cHtml = optHtml([{v:'',t:'— nenhum (preencher à mão) —'}].concat(D.clientes.slice().sort(function(a,b){ return String(a.nome).localeCompare(String(b.nome)); }).map(function(c){ return {v:c.number,t:c.number+' · '+(c.nome||'')}; })));
   setOpts($('repCli'),cHtml,S.clienteId); setOpts($('eq_clienteId'),cHtml,E.clienteId); setOpts($('os_clienteId'),cHtml,O.clienteId);
   setOpts($('repOs'), optHtml([{v:'',t:'— nenhuma —'}].concat(D.ordens.map(function(o){ return {v:o.number,t:o.number+' · '+(o.marca||'')+' · '+(o.nome||'')}; }))), S.os);
@@ -192,20 +191,20 @@ function renderOsList(){
 }
 function renderLists(){
   if(!ME) return;
-  refreshSelects(); renderRepList(); renderEqList(); renderOsList(); renderCliList(); renderXlinks(); renderCliLinks(); renderHome();
+  refreshSelects(); renderRepList(); renderEqList(); renderOsList(); renderCliList(); renderXlinks(); renderCliLinks(); renderHome(); renderCat();
   if(isAdmin()) renderUsers();
   renderHeader(); renderPaper();
 }
-['histSearch','eqSearch','osSearch','cliSearch'].forEach(function(id){ $(id).addEventListener('input',function(){ if(ME) renderLists(); }); });
+['histSearch','eqSearch','osSearch','cliSearch','catSearch'].forEach(function(id){ $(id).addEventListener('input',function(){ if(ME) renderLists(); }); });
 ['eqFilter','osFilter'].forEach(function(id){ $(id).addEventListener('change',function(){ if(ME) renderLists(); }); });
 
 /* ---------- navegação ---------- */
 function showView(v){
   if(v==='adm' && !isAdmin()) v='rel';
-  ['home','rel','cli','eq','os','adm','conta'].forEach(function(x){ $('v_'+x).hidden = x!==v; });
+  ['home','rel','cli','eq','os','cat','adm','conta'].forEach(function(x){ $('v_'+x).hidden = x!==v; });
   document.querySelectorAll('#nav button').forEach(function(b){ b.setAttribute('aria-selected', String(b.dataset.view===v)); });
   curView = v; window.scrollTo(0,0);
-  if(v==='home') renderHome(); if(v==='rel') fit(); if(v==='adm') renderUsers(); if(v==='conta') renderConta(); if(v==='cli') renderCliLinks();
+  if(v==='home') renderHome(); if(v==='cat') renderCat(); if(v==='rel') fit(); if(v==='adm') renderUsers(); if(v==='conta') renderConta(); if(v==='cli') renderCliLinks();
 }
 $('nav').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) showView(b.dataset.view); });
 $('btnConta').addEventListener('click',function(){ showView('conta'); });

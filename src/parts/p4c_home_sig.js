@@ -130,3 +130,57 @@ $('btnOsShare').addEventListener('click', async function(){
   var id = await doSaveOs(); if(!id) return;
   await makeAndDeliver(function(logo,sig){ return buildOsPdf(O, logo, sig); }, id+'.pdf', O.assinatura, true);
 });
+
+/* ---------- catálogo / checklist de equipamentos ---------- */
+function typeCounts(){
+  var m = {};
+  function add(code,k){ if(!code) return; (m[code] = m[code] || {eq:0,os:0,rep:0})[k]++; }
+  D.equipamentos.forEach(function(r){ add(r.code,'eq'); });
+  D.ordens.forEach(function(r){ add(r.code,'os'); });
+  D.reports.forEach(function(r){ add(r.code,'rep'); });
+  return m;
+}
+function plural(n,s,p){ return n+' '+(n===1?s:p); }
+function renderCat(){
+  if(!ME) return;
+  var q = norm($('catSearch').value).trim(), used = $('catUsed').checked, cnt = typeCounts(), all = allTypes();
+  var on = all.filter(function(t){ return !t.off; }).length;
+  $('catSum').textContent = on+' de '+all.length+' tipos marcados como reparáveis.';
+  var order = [], by = {};
+  all.forEach(function(t){
+    var c = cnt[t.code] || {eq:0,os:0,rep:0};
+    if(q && norm(t.name+' '+t.code+' '+t.cat).indexOf(q)<0) return;
+    if(used && !(c.eq||c.os||c.rep)) return;
+    if(!by[t.cat]){ by[t.cat] = []; order.push(t.cat); }
+    by[t.cat].push(t);
+  });
+  var open = !!(q || used);
+  var html = order.map(function(cat){
+    var rows = by[cat].map(function(t){
+      var c = cnt[t.code] || {eq:0,os:0,rep:0};
+      var ct = (c.eq||c.os||c.rep) ? plural(c.eq,'equipamento','equipamentos')+' · '+plural(c.os,'ordem','ordens')+' · '+plural(c.rep,'relatório','relatórios') : 'sem registos';
+      return '<div class="catrow'+(t.off?' off':'')+'"><label><input type="checkbox" data-cat-code="'+esc(t.code)+'"'+(t.off?'':' checked')+(isAdmin()?'':' disabled')+'><span class="cd">'+esc(t.code)+'</span><span class="nm">'+esc(t.name)+'</span></label><span class="ct">'+esc(ct)+'</span>'+
+        (t.off?'':'<button type="button" class="btn sm" data-newtype="'+esc(t.code)+'">+ Equipamento</button>')+'</div>';
+    }).join('');
+    var n = by[cat].filter(function(t){ return !t.off; }).length;
+    return '<details class="catgrp"'+(open || cat===order[0] ? ' open':'')+'><summary>'+esc(cat)+'<span class="badge">'+n+' / '+by[cat].length+'</span></summary>'+rows+'</details>';
+  }).join('');
+  var box = $('catBox');
+  var openSet = {}; box.querySelectorAll('details').forEach(function(d){ openSet[d.querySelector('summary').firstChild.textContent] = d.open; });
+  box.innerHTML = html || '<div class="empty">Nenhum equipamento encontrado.</div>';
+  box.querySelectorAll('details').forEach(function(d){ var k = d.querySelector('summary').firstChild.textContent; if(!open && k in openSet) d.open = openSet[k]; });
+}
+$('catUsed').addEventListener('change',function(){ if(ME) renderCat(); });
+$('catBox').addEventListener('change', async function(e){
+  var cb = e.target.closest && e.target.closest('[data-cat-code]'); if(!cb) return;
+  if(!isAdmin()){ cb.checked = !cb.checked; return; }
+  var code = cb.dataset.catCode, t = allTypes().filter(function(x){ return x.code===code; })[0]; if(!t) return;
+  var off = !cb.checked;
+  var ok = await guarded(function(){ return putDoc('tipos',{code:code,name:t.name,off:off}).then(function(){ return true; }); },'Não foi possível guardar a alteração. Tenta outra vez.');
+  if(!ok){ cb.checked = !cb.checked; return; }
+  renderLists();
+});
+$('catBox').addEventListener('click',function(e){
+  var b = e.target.closest && e.target.closest('[data-newtype]'); if(!b) return;
+  E = blankEq(); E.code = b.dataset.newtype; syncAll(); renderLists(); showView('eq');
+});

@@ -196,6 +196,19 @@ details.addtype .btn{margin-top:8px}
 .sigdone img{width:150px;max-width:45%;height:auto;background:#fff;border-radius:6px;border:1px solid var(--line)}
 .sigdone small{color:var(--muted)}
 .offline{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);z-index:60;background:var(--bad-fg);color:var(--bad-bg);text-align:center;font:600 13px var(--font-body);padding:8px 12px}
+.catgrp{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.catgrp>summary{cursor:pointer;padding:12px 14px;font:600 14px var(--font-head);color:var(--navy);display:flex;gap:10px;align-items:center;list-style:none}
+.catgrp>summary::-webkit-details-marker{display:none}
+.catgrp>summary .badge{margin-left:auto}
+.catrow{display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--line);font-size:13px}
+.catrow label{display:flex;flex-direction:row;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;text-align:left;font-size:13px;color:var(--fg)}
+.catrow input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.catrow .cd{font:700 12px var(--font-head);letter-spacing:.5px;color:var(--accent);min-width:38px}
+.catrow .nm{overflow:hidden;text-overflow:ellipsis}
+.catrow .ct{color:var(--muted);font-size:12px;white-space:nowrap}
+.catrow.off .nm{text-decoration:line-through;color:var(--muted)}
+.catrow .btn{flex:none}
+@media (max-width:560px){.catrow{flex-wrap:wrap}.catrow .ct{order:3;width:100%;padding-left:48px;text-align:left}}
 </style>
 
 <!-- ============ ENTRADA ============ -->
@@ -232,6 +245,7 @@ details.addtype .btn{margin-top:8px}
       <button type="button" data-view="cli" aria-selected="false">Clientes</button>
       <button type="button" data-view="eq" aria-selected="false">Equipamentos</button>
       <button type="button" data-view="os" aria-selected="false">Ordens de serviço</button>
+      <button type="button" data-view="cat" aria-selected="false">Catálogo</button>
       <button type="button" data-view="adm" aria-selected="false" id="navAdm" hidden>Administração</button>
     </nav>
     <div class="who">
@@ -485,6 +499,22 @@ details.addtype .btn{margin-top:8px}
     </div>
   </section>
 
+  <!-- ---------- CATÁLOGO / CHECKLIST DE EQUIPAMENTOS ---------- -->
+  <section id="v_cat" hidden>
+    <div class="app wide">
+      <div class="panel">
+        <div class="homehead"><h1>Checklist de equipamentos</h1>
+          <p class="hint" id="catSum"></p></div>
+        <div class="filters">
+          <label for="catSearch">Pesquisar tipo de equipamento<input id="catSearch" type="search" placeholder="Nome ou código (ex.: frigorífico, MLR)…" autocomplete="off"></label>
+          <label class="chk" for="catUsed"><input id="catUsed" type="checkbox"> Só os que já têm registos</label>
+        </div>
+        <p class="hint">Marca os equipamentos que a AMA TEC repara. Só os marcados aparecem nas listas ao registar equipamentos, ordens e relatórios. Cada tipo tem o seu código, que dá o número dos relatórios (ex.: FRG-0001). Só o administrador altera as marcas.</p>
+        <div id="catBox" class="grp"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ---------- ADMINISTRAÇÃO ---------- -->
   <section id="v_adm" hidden>
     <div class="app">
@@ -562,16 +592,16 @@ var $ = function(id){ return document.getElementById(id); };
 var LOGO = $('logoTop').getAttribute('src');
 $('pLogo').src = LOGO; $('authLogo').src = LOGO;
 
-var DEFAULT_TYPES = [
-  {code:'TV',  name:'Televisor'},
-  {code:'FOG', name:'Fogão'},
-  {code:'MLR', name:'Máquina de lavar roupa'},
-  {code:'MLL', name:'Máquina de lavar loiça'},
-  {code:'AFR', name:'Air fryer'},
-  {code:'FRG', name:'Frigorífico'},
-  {code:'ARC', name:'Ar condicionado'},
-  {code:'MIC', name:'Micro-ondas'}
+var CATALOG = [
+  {cat:'Equipamentos domésticos', items:[['FRG','Frigorífico'],['ACO','Arca congeladora'],['GEL','Geleira'],['MLR','Máquina de lavar roupa'],['MSR','Máquina de secar roupa'],['MLL','Máquina de lavar loiça'],['MIC','Micro-ondas'],['FOE','Forno eléctrico'],['FGE','Fogão eléctrico'],['FGG','Fogão a gás'],['AFR','Air fryer'],['EXA','Exaustor'],['MCF','Máquina de café'],['LIQ','Liquidificador'],['BAT','Batedeira'],['TOR','Torradeira'],['FEN','Ferro de engomar'],['ASP','Aspirador'],['VEN','Ventoinha'],['CHA','Chaleira eléctrica'],['TAC','Termoacumulador'],['PIN','Placa de indução'],['PVC','Placa vitrocerâmica'],['SAN','Sanduicheira'],['FRE','Fritadeira eléctrica']]},
+  {cat:'Equipamentos industriais', items:[['MLI','Máquina de lavar roupa industrial'],['MSI','Máquina de secar roupa industrial'],['CAL','Calandra industrial'],['LLI','Máquina de lavar loiça industrial'],['FGI','Fogão industrial'],['FOI','Forno industrial'],['FRI','Fritadeira industrial'],['FGX','Fogão industrial a gás'],['PLA','Plancha industrial'],['GRI','Grelhador industrial'],['CFR','Câmara frigorífica'],['ACI','Arca congeladora industrial'],['VIT','Vitrina refrigerada'],['BFR','Balcão frigorífico'],['MGE','Máquina de gelo'],['MCP','Máquina de café profissional'],['EXI','Exaustor industrial'],['SEF','Sistema de extracção de fumos'],['AMS','Amassadeira industrial'],['BAI','Batedeira industrial'],['COA','Cortador de alimentos'],['MPA','Máquina de preparação alimentar'],['CPA','Compressor de ar'],['ASI','Aspirador industrial'],['ELH','Equipamento de lavandaria hoteleira']]},
+  {cat:'Electrónica', items:[['TLE','Televisor LED'],['TLC','Televisor LCD'],['STV','Smart TV'],['MON','Monitor'],['PEL','Placa electrónica'],['FAL','Fonte de alimentação'],['COM','Comando electrónico'],['AMP','Amplificador de som'],['COL','Coluna de som'],['SAU','Sistema de áudio'],['CEL','Circuito electrónico'],['INV','Inversor eléctrico'],['EST','Estabilizador de tensão'],['UPS','UPS']]},
+  {cat:'Informática e equipamentos comerciais', items:[['CPM','Computador de mesa'],['CPP','Computador portátil'],['ITE','Impressora térmica'],['ICO','Impressora convencional'],['LCB','Leitor de código de barras'],['POS','Terminal POS'],['BDI','Balança digital'],['BCO','Balança comercial'],['BIN','Balança industrial'],['GAV','Gaveta de dinheiro'],['EFA','Equipamento de facturação']]},
+  {cat:'Jardinagem, limpeza e oficina', items:[['MLC','Máquina de lavar carros'],['MAP','Máquina de alta pressão'],['MCR','Máquina de cortar relva'],['ROC','Roçadora eléctrica'],['CMP','Compressor'],['FEL','Ferramenta eléctrica'],['MPO','Máquina de polir'],['ELV','Equipamento de limpeza a vapor'],['BAG','Bomba de água']]},
+  {cat:'Outro', items:[['OUT','Outro'],['TV','Televisor'],['FOG','Fogão'],['ARC','Ar condicionado']]}
 ];
+var DEFAULT_TYPES = [];
+CATALOG.forEach(function(c){ c.items.forEach(function(i){ DEFAULT_TYPES.push({code:i[0],name:i[1],cat:c.cat}); }); });
 var INTRO = 'Após a verificação técnica do equipamento, foram identificadas necessidades de intervenção nos seguintes componentes:';
 var HOLDER = 'p' + Math.random().toString(36).slice(2, 10);
 var ITER = 100000;
@@ -643,9 +673,22 @@ function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 
 /* ---------- tipos e utilizadores ---------- */
 function allTypes(){
-  var seen = {}, out=[];
-  DEFAULT_TYPES.concat(D.tipos).forEach(function(t){ if(!seen[t.code]){ seen[t.code]=1; out.push(t); } });
+  var over = {}, out = [];
+  D.tipos.forEach(function(t){ over[t.code] = t; });
+  DEFAULT_TYPES.forEach(function(t){ out.push({code:t.code, name:t.name, cat:t.cat, off:!!(over[t.code] && over[t.code].off)}); });
+  D.tipos.forEach(function(t){ if(!DEFAULT_TYPES.some(function(d){ return d.code===t.code; })) out.push({code:t.code, name:t.name, cat:'Outro', off:!!t.off}); });
   return out;
+}
+function typeOpts(keep){
+  var by = {}, order = [];
+  allTypes().forEach(function(t){
+    if(t.off && t.code!==keep) return;
+    if(!by[t.cat]){ by[t.cat] = []; order.push(t.cat); }
+    by[t.cat].push(t);
+  });
+  return order.map(function(c){
+    return '<optgroup label="'+esc(c)+'">'+by[c].map(function(t){ return '<option value="'+esc(t.code)+'">'+esc(t.name)+' ('+esc(t.code)+')</option>'; }).join('')+'</optgroup>';
+  }).join('');
 }
 function typeOf(code){ return allTypes().filter(function(t){ return t.code===code; })[0]; }
 function typeName(code){ var t=typeOf(code); return t ? t.name : (code||''); }
@@ -845,8 +888,7 @@ function syncAll(){ syncForm('rep',S); syncForm('eq',E); syncForm('os',O); syncF
 function optHtml(list){ return list.map(function(o){ return '<option value="'+esc(o.v)+'">'+esc(o.t)+'</option>'; }).join(''); }
 function setOpts(el,html,val){ if(el){ el.innerHTML=html; el.value = val==null?'':val; } }
 function refreshSelects(){
-  var tHtml = optHtml(allTypes().map(function(t){ return {v:t.code,t:t.name+' ('+t.code+')'}; }));
-  setOpts($('code'),tHtml,S.code); setOpts($('eq_code'),tHtml,E.code); setOpts($('os_code'),tHtml,O.code);
+  setOpts($('code'),typeOpts(S.code),S.code); setOpts($('eq_code'),typeOpts(E.code),E.code); setOpts($('os_code'),typeOpts(O.code),O.code);
   var cHtml = optHtml([{v:'',t:'— nenhum (preencher à mão) —'}].concat(D.clientes.slice().sort(function(a,b){ return String(a.nome).localeCompare(String(b.nome)); }).map(function(c){ return {v:c.number,t:c.number+' · '+(c.nome||'')}; })));
   setOpts($('repCli'),cHtml,S.clienteId); setOpts($('eq_clienteId'),cHtml,E.clienteId); setOpts($('os_clienteId'),cHtml,O.clienteId);
   setOpts($('repOs'), optHtml([{v:'',t:'— nenhuma —'}].concat(D.ordens.map(function(o){ return {v:o.number,t:o.number+' · '+(o.marca||'')+' · '+(o.nome||'')}; }))), S.os);
@@ -966,20 +1008,20 @@ function renderOsList(){
 }
 function renderLists(){
   if(!ME) return;
-  refreshSelects(); renderRepList(); renderEqList(); renderOsList(); renderCliList(); renderXlinks(); renderCliLinks(); renderHome();
+  refreshSelects(); renderRepList(); renderEqList(); renderOsList(); renderCliList(); renderXlinks(); renderCliLinks(); renderHome(); renderCat();
   if(isAdmin()) renderUsers();
   renderHeader(); renderPaper();
 }
-['histSearch','eqSearch','osSearch','cliSearch'].forEach(function(id){ $(id).addEventListener('input',function(){ if(ME) renderLists(); }); });
+['histSearch','eqSearch','osSearch','cliSearch','catSearch'].forEach(function(id){ $(id).addEventListener('input',function(){ if(ME) renderLists(); }); });
 ['eqFilter','osFilter'].forEach(function(id){ $(id).addEventListener('change',function(){ if(ME) renderLists(); }); });
 
 /* ---------- navegação ---------- */
 function showView(v){
   if(v==='adm' && !isAdmin()) v='rel';
-  ['home','rel','cli','eq','os','adm','conta'].forEach(function(x){ $('v_'+x).hidden = x!==v; });
+  ['home','rel','cli','eq','os','cat','adm','conta'].forEach(function(x){ $('v_'+x).hidden = x!==v; });
   document.querySelectorAll('#nav button').forEach(function(b){ b.setAttribute('aria-selected', String(b.dataset.view===v)); });
   curView = v; window.scrollTo(0,0);
-  if(v==='home') renderHome(); if(v==='rel') fit(); if(v==='adm') renderUsers(); if(v==='conta') renderConta(); if(v==='cli') renderCliLinks();
+  if(v==='home') renderHome(); if(v==='cat') renderCat(); if(v==='rel') fit(); if(v==='adm') renderUsers(); if(v==='conta') renderConta(); if(v==='cli') renderCliLinks();
 }
 $('nav').addEventListener('click',function(e){ var b=e.target.closest('button'); if(b) showView(b.dataset.view); });
 $('btnConta').addEventListener('click',function(){ showView('conta'); });
@@ -1552,6 +1594,60 @@ $('btnOsShare').addEventListener('click', async function(){
   if(busy) return;
   var id = await doSaveOs(); if(!id) return;
   await makeAndDeliver(function(logo,sig){ return buildOsPdf(O, logo, sig); }, id+'.pdf', O.assinatura, true);
+});
+
+/* ---------- catálogo / checklist de equipamentos ---------- */
+function typeCounts(){
+  var m = {};
+  function add(code,k){ if(!code) return; (m[code] = m[code] || {eq:0,os:0,rep:0})[k]++; }
+  D.equipamentos.forEach(function(r){ add(r.code,'eq'); });
+  D.ordens.forEach(function(r){ add(r.code,'os'); });
+  D.reports.forEach(function(r){ add(r.code,'rep'); });
+  return m;
+}
+function plural(n,s,p){ return n+' '+(n===1?s:p); }
+function renderCat(){
+  if(!ME) return;
+  var q = norm($('catSearch').value).trim(), used = $('catUsed').checked, cnt = typeCounts(), all = allTypes();
+  var on = all.filter(function(t){ return !t.off; }).length;
+  $('catSum').textContent = on+' de '+all.length+' tipos marcados como reparáveis.';
+  var order = [], by = {};
+  all.forEach(function(t){
+    var c = cnt[t.code] || {eq:0,os:0,rep:0};
+    if(q && norm(t.name+' '+t.code+' '+t.cat).indexOf(q)<0) return;
+    if(used && !(c.eq||c.os||c.rep)) return;
+    if(!by[t.cat]){ by[t.cat] = []; order.push(t.cat); }
+    by[t.cat].push(t);
+  });
+  var open = !!(q || used);
+  var html = order.map(function(cat){
+    var rows = by[cat].map(function(t){
+      var c = cnt[t.code] || {eq:0,os:0,rep:0};
+      var ct = (c.eq||c.os||c.rep) ? plural(c.eq,'equipamento','equipamentos')+' · '+plural(c.os,'ordem','ordens')+' · '+plural(c.rep,'relatório','relatórios') : 'sem registos';
+      return '<div class="catrow'+(t.off?' off':'')+'"><label><input type="checkbox" data-cat-code="'+esc(t.code)+'"'+(t.off?'':' checked')+(isAdmin()?'':' disabled')+'><span class="cd">'+esc(t.code)+'</span><span class="nm">'+esc(t.name)+'</span></label><span class="ct">'+esc(ct)+'</span>'+
+        (t.off?'':'<button type="button" class="btn sm" data-newtype="'+esc(t.code)+'">+ Equipamento</button>')+'</div>';
+    }).join('');
+    var n = by[cat].filter(function(t){ return !t.off; }).length;
+    return '<details class="catgrp"'+(open || cat===order[0] ? ' open':'')+'><summary>'+esc(cat)+'<span class="badge">'+n+' / '+by[cat].length+'</span></summary>'+rows+'</details>';
+  }).join('');
+  var box = $('catBox');
+  var openSet = {}; box.querySelectorAll('details').forEach(function(d){ openSet[d.querySelector('summary').firstChild.textContent] = d.open; });
+  box.innerHTML = html || '<div class="empty">Nenhum equipamento encontrado.</div>';
+  box.querySelectorAll('details').forEach(function(d){ var k = d.querySelector('summary').firstChild.textContent; if(!open && k in openSet) d.open = openSet[k]; });
+}
+$('catUsed').addEventListener('change',function(){ if(ME) renderCat(); });
+$('catBox').addEventListener('change', async function(e){
+  var cb = e.target.closest && e.target.closest('[data-cat-code]'); if(!cb) return;
+  if(!isAdmin()){ cb.checked = !cb.checked; return; }
+  var code = cb.dataset.catCode, t = allTypes().filter(function(x){ return x.code===code; })[0]; if(!t) return;
+  var off = !cb.checked;
+  var ok = await guarded(function(){ return putDoc('tipos',{code:code,name:t.name,off:off}).then(function(){ return true; }); },'Não foi possível guardar a alteração. Tenta outra vez.');
+  if(!ok){ cb.checked = !cb.checked; return; }
+  renderLists();
+});
+$('catBox').addEventListener('click',function(e){
+  var b = e.target.closest && e.target.closest('[data-newtype]'); if(!b) return;
+  E = blankEq(); E.code = b.dataset.newtype; syncAll(); renderLists(); showView('eq');
 });
 
 /* =====================================================================
